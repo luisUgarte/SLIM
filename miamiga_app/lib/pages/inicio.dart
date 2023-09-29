@@ -1,122 +1,96 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
+// ignore: unused_import
+import 'package:miamiga_app/pages/edit_perfil.dart';
+// ignore: unused_import
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+class InicioScreen extends StatelessWidget {
+  final User? user;
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  Future<String> getUserName(User? user) async {
+  if (user != null) {
+    // Check if the user is signed in with Google
+    if (user.providerData.any((userInfo) => userInfo.providerId == 'google.com')) {
+      // If signed in with Google, return the user's display name
+      return user.displayName ?? 'Usuario desconocido';
+    } else {
+      // If not signed in with Google, you can implement a different logic
+      // to get the user's name based on your authentication method.
+      // For example, if using email/password, you can fetch it from Firestore
+      // or another database using the user's UID.
+      // Here's an example using Firestore:
 
-  @override
-  State<HomePage> createState() => _HomePageState();
+      try {
+        DocumentSnapshot snapshot = await FirebaseFirestore.instance
+            .collection('registration')
+            .doc(user.uid)
+            .get();
+
+        if (snapshot.exists) {
+          final fullName = snapshot.get('full name');
+          return fullName;
+        } else {
+          return 'Usuario desconocido';
+        }
+      } catch (e) {
+        // ignore: avoid_print
+        print('Error getting user name: $e');
+        return 'Usuario desconocido';
+      }
+    }
+  } else {
+    return 'Usuario desconocido';
+  }
 }
 
-class _HomePageState extends State<HomePage> {
+  const InicioScreen({
+    super.key,
+    required this.user,
+  });
 
-  final List<Widget> _screens = [
-    Container(
-      color: Colors.yellow.shade100,
-      alignment: Alignment.center,
-      child: const Text(
-        'Inicio',
-        style: TextStyle(fontSize: 40),
-      ),
-    ),
-    Container(
-      color: Colors.purple.shade100,
-      alignment: Alignment.center,
-      child: const Text(
-        'Denuncia',
-        style: TextStyle(fontSize: 40),
-      ),
-    ),
-    Container(
-      color: Colors.pink.shade100,
-      alignment: Alignment.center,
-      child: const Text(
-        'Perfil',
-        style: TextStyle(fontSize: 40),
-      ),
-    ),
-  ];
-  //el selectedIndex nos sirve para que cuando seleccionamos un ventana tiene que cambiar su indice de ventana
-  int _selectedIndex = 0;
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      /* appBar: AppBar(
-        title: const Text("Resposive Site"),
-      ), */
-
-      //MediaQuery es lo que haremos que la pagina web sea responsive cuando es menor que 640
-      bottomNavigationBar: MediaQuery.of(context).size.width < 640 ? Container(
-        color: const Color.fromRGBO(192, 108, 132, 1),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 12),
-          child: GNav(
-            backgroundColor: const Color.fromRGBO(192, 108, 132, 1),
-            color: Colors.white,
-            activeColor: Colors.white,
-            tabBackgroundColor: const Color.fromRGBO(248, 181, 149, 1),
-            gap: 8,
-            padding: const EdgeInsets.all(16),
-            tabs: const [
-              GButton(icon: Icons.home, text: 'Inicio'),
-              GButton(icon: Icons.warning_rounded, text: 'Denuncia'),
-              GButton(icon: Icons.person, text: 'Perfil'),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 15),
+              FutureBuilder<String>(
+                future: getUserName(user),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else {
+                    final userName = snapshot.data ?? 'Usuario desconocido';
+                    return Center(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                            child: Text(
+                              'Bienvenido, $userName',
+                                style: const TextStyle(fontSize: 40),
+                                textAlign: TextAlign.start,
+                            ),
+                          ),
+                          if (user != null)
+                          Text(
+                            'Email: ${user!.email ?? 'Email no disponible'}',
+                              style: const TextStyle(fontSize: 20),
+                              textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
+              ),
             ],
-            selectedIndex: _selectedIndex,
-            onTabChange: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
           ),
         ),
-      ):null,
-
-      body: Row(
-        children: [
-          //MediaQuery es lo que haremos responsivo cuando sea mayor e igual que 640 esto es movil
-          if (MediaQuery.of(context).size.width >= 640)
-          NavigationRail(
-            //usamos onDestinationSelected para poder hacer click y llamar a nuestro variable _selectedIndex y es entero
-            onDestinationSelected: (int index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-
-            selectedIndex: _selectedIndex,
-            destinations: const[
-              NavigationRailDestination(
-                icon: Icon(Icons.home), label: Text('Inicio')),
-              NavigationRailDestination(
-                icon: Icon(Icons.warning_rounded), label: Text('Denuncia')),
-              NavigationRailDestination(
-                icon: Icon(Icons.person), label: Text('Perfil')),
-            ],
-
-            labelType: NavigationRailLabelType.all,
-            selectedLabelTextStyle: const TextStyle(
-              color: Colors.teal
-            ),
-
-            unselectedLabelTextStyle: const TextStyle(),
-
-            leading: const Column(
-              children: [
-                SizedBox(
-                  height: 8,
-                ),
-                CircleAvatar(
-                  radius: 20,
-                  child: Icon(Icons.person),
-                ),
-              ],
-            ),
-          ),
-          Expanded(child: _screens[_selectedIndex]),
-        ],
       ),
     );
   }
