@@ -3,11 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-<<<<<<< HEAD
-import 'package:miamiga_app/pages/denuncia.dart';
-=======
 import 'package:miamiga_app/pages/sobre.dart';
->>>>>>> origin/johan
 import 'package:miamiga_app/pages/inicio.dart';
 
 import 'package:miamiga_app/pages/perfil.dart';
@@ -35,11 +31,7 @@ class _ScreensState extends State<Screens> {
 
     _screens = [
       InicioScreen(user: user!),
-<<<<<<< HEAD
-      const DenunciaScreen(),
-=======
       const SobreScreen(),
->>>>>>> origin/johan
       PerfilScreen(user: user!),
     ];
   }
@@ -66,11 +58,7 @@ class _ScreensState extends State<Screens> {
                   padding: const EdgeInsets.all(16),
                   tabs: const [
                     GButton(icon: Icons.home, text: 'Inicio'),
-<<<<<<< HEAD
-                    GButton(icon: Icons.warning_rounded, text: 'Denuncia'),
-=======
                     GButton(icon: Icons.info, text: 'Sobre'),
->>>>>>> origin/johan
                     GButton(icon: Icons.person, text: 'Perfil'),
                   ],
                   selectedIndex: _selectedIndex,

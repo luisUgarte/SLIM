@@ -10,7 +10,6 @@ class AlertaScreen extends StatefulWidget {
   
   const AlertaScreen({
     super.key,
-    
   });
 
   @override

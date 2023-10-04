@@ -1,19 +1,12 @@
-<<<<<<< HEAD
-=======
 // ignore_for_file: avoid_print
 
 import 'package:cloud_firestore/cloud_firestore.dart';
->>>>>>> origin/johan
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:miamiga_app/components/headers.dart';
 import 'package:miamiga_app/components/my_button.dart';
-<<<<<<< HEAD
-import 'package:miamiga_app/components/my_textfield.dart';
-=======
 import 'package:miamiga_app/components/my_textfield.dart';// ignore: unused_import
->>>>>>> origin/johan
 import 'package:miamiga_app/pages/edit_perfil.dart';
 import 'package:miamiga_app/pages/inicio_o_registrar.dart';
 
@@ -30,11 +23,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   final fullnameController = TextEditingController();
   final phoneController = TextEditingController();
-<<<<<<< HEAD
-  final locationController = TextEditingController();
-=======
   final ciController = TextEditingController();
->>>>>>> origin/johan
 
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
@@ -52,17 +41,11 @@ class _PerfilScreenState extends State<PerfilScreen> {
     //i want a navigator to go to the edit perfil page
     Navigator.of(context).push(
       MaterialPageRoute(
-<<<<<<< HEAD
-        builder: (context) => const EditPerfil(), 
-=======
         builder: (context) => EditPerfil(user: widget.user), 
->>>>>>> origin/johan
       ),
     );
   }
 
-<<<<<<< HEAD
-=======
   final CollectionReference _registration = 
         FirebaseFirestore.instance.collection('registration');
 
@@ -98,7 +81,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
     _fetchData();
   }
 
->>>>>>> origin/johan
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,41 +129,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     ),
                   ),
 
-<<<<<<< HEAD
-                  const SizedBox(height: 50),
-
-                  MyTextField(
-                    controller: fullnameController, 
-                    hintText: 'Nombre Completo', 
-                    obscureText: false,
-                    isEnabled: false,
-                  ),
-                  const SizedBox(height: 10),
-                  MyTextField(
-                    controller: phoneController, 
-                    hintText: 'Telefono', 
-                    obscureText: false,
-                    isEnabled: false,
-                  ),
-                  const SizedBox(height: 10),
-                  MyTextField(
-                    controller: locationController, 
-                    hintText: 'Ubicacion', 
-                    obscureText: false,
-                    isEnabled: false,
-                  ),
-
-                  const SizedBox(height: 25),
-
-                //boton de iniciar sesion
-
-                MyButton(
-                  text: 'EDITAR DATOS PERSONALES',
-                  onTap: editPersonalData,
-                ),
-
-                const SizedBox(height: 70),
-=======
 
                   FutureBuilder(
                   future: _fetchData(), 
@@ -228,7 +175,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
               ),
 
                   const SizedBox(height: 70),
->>>>>>> origin/johan
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: Text(
