@@ -8,9 +8,15 @@ import 'package:miamiga_app/components/my_button.dart';
 import 'package:miamiga_app/components/my_textfield.dart';
 // ignore: unused_import
 import 'package:miamiga_app/pages/geolocator.dart';
+<<<<<<< HEAD
 import 'package:miamiga_app/pages/inicio.dart';
 // ignore: unused_import
 import 'package:miamiga_app/pages/map.dart';
+=======
+// ignore: unused_import
+import 'package:miamiga_app/pages/map.dart';
+import 'package:miamiga_app/pages/verify_email.dart';
+>>>>>>> origin/johan
 
 class RegistroPage extends StatefulWidget {
 
@@ -48,11 +54,19 @@ class _RegistroPageState extends State<RegistroPage> {
   try {
     // Check if password is confirmed
     if (passwordController.text != confirmPassController.text) {
+<<<<<<< HEAD
+=======
+      Navigator.pop(context); //cerrar el dialogo en caso de error
+>>>>>>> origin/johan
       showErrorMsg("Las contraseñas no coinciden");
       return;
     }
 
     if (areFieldsEmpty()) {
+<<<<<<< HEAD
+=======
+      Navigator.pop(context); //cerrar el dialogo en caso de error
+>>>>>>> origin/johan
       showErrorMsg("Por favor, complete todos los campos");
       return;
     }
@@ -63,6 +77,13 @@ class _RegistroPageState extends State<RegistroPage> {
     );
 
     if (res.user != null) {
+<<<<<<< HEAD
+=======
+      //send email verification
+
+      await res.user!.sendEmailVerification();
+
+>>>>>>> origin/johan
       await createUserDocument(
         res.user!,
         fullnameController.text.trim(),
@@ -78,6 +99,7 @@ class _RegistroPageState extends State<RegistroPage> {
         ),
       );
 
+<<<<<<< HEAD
       Future.delayed(const Duration(milliseconds: 500), () {
         Navigator.pop(context);
       });
@@ -99,6 +121,31 @@ class _RegistroPageState extends State<RegistroPage> {
   } finally {
     Navigator.pop(context);
   }
+=======
+      Future.delayed(const Duration(milliseconds: 300), () {
+        Navigator.pop(context);
+      });
+
+      //Navigate to the verification screen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const VerifyEmail(),
+        ),
+      );
+
+      
+    } else {
+      Navigator.pop(context); //cerrar el dialogo en caso de error
+      showErrorMsg("Error al crear la cuenta. Intente nuevamente.");
+    }
+  } on FirebaseAuthException catch (e) {
+    Navigator.pop(context); //cerrar el dialogo en caso de error
+    showErrorMsg(e.message ?? "Error desconocido");
+  } catch (e) {
+    Navigator.pop(context); //cerrar el dialogo en caso de error
+    showErrorMsg("Error inesperado: $e");
+  } 
+>>>>>>> origin/johan
 }
 
 bool areFieldsEmpty() {
@@ -109,6 +156,7 @@ bool areFieldsEmpty() {
 }
 
 
+<<<<<<< HEAD
   void showErrorMsg(String message) {
       showDialog(
         context: context, 
@@ -123,6 +171,20 @@ bool areFieldsEmpty() {
           ),
         );
       },
+=======
+
+  void showErrorMsg(String errorMsg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          errorMsg,
+          style: const TextStyle(
+            color: Colors.white,
+          )
+        ),
+        backgroundColor: Colors.red,
+      ),
+>>>>>>> origin/johan
     );
   }
 
@@ -139,7 +201,12 @@ bool areFieldsEmpty() {
           });
     } catch (e) {
       // ignore: avoid_print
+<<<<<<< HEAD
       print('Error creating user document: $e');
+=======
+      print('Error al crear documento del usuario: $e');
+      Navigator.pop(context);
+>>>>>>> origin/johan
     }
   }
 

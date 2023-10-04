@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 // ignore: unused_import
 import 'package:miamiga_app/pages/edit_perfil.dart';
 // ignore: unused_import
@@ -9,6 +10,27 @@ class InicioScreen extends StatelessWidget {
   final User? user;
 
   Future<String> getUserName(User? user) async {
+=======
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:miamiga_app/components/important_button.dart';
+import 'package:miamiga_app/pages/denunciar_incidente.dart';
+
+class InicioScreen extends StatefulWidget {
+  final User? user;
+
+  const InicioScreen({
+    super.key,
+    required this.user,
+  });
+
+  @override
+  State<InicioScreen> createState() => _InicioScreenState();
+}
+
+class _InicioScreenState extends State<InicioScreen> {
+  Future<String> getUserName(User? user) async {
+    
+>>>>>>> origin/johan
   if (user != null) {
     // Check if the user is signed in with Google
     if (user.providerData.any((userInfo) => userInfo.providerId == 'google.com')) {
@@ -44,10 +66,21 @@ class InicioScreen extends StatelessWidget {
   }
 }
 
+<<<<<<< HEAD
   const InicioScreen({
     super.key,
     required this.user,
   });
+=======
+  void denunciarScreen() async{
+    //i want a navigator to go to the edit perfil page
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const DenunciaIncidente(), 
+      ),
+    );
+  }
+>>>>>>> origin/johan
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +92,11 @@ class InicioScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 15),
               FutureBuilder<String>(
+<<<<<<< HEAD
                 future: getUserName(user),
+=======
+                future: getUserName(widget.user),
+>>>>>>> origin/johan
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const CircularProgressIndicator();
@@ -75,12 +112,21 @@ class InicioScreen extends StatelessWidget {
                                 style: const TextStyle(fontSize: 40),
                                 textAlign: TextAlign.start,
                             ),
+<<<<<<< HEAD
                           ),
                           if (user != null)
                           Text(
                             'Email: ${user!.email ?? 'Email no disponible'}',
                               style: const TextStyle(fontSize: 20),
                               textAlign: TextAlign.center,
+=======
+                          ),    
+                          const SizedBox(height: 100),
+                          ImportantButton(
+                            text: 'DENUNCIAR',
+                            onTap: denunciarScreen,
+                            icon: Icons.warning_rounded,
+>>>>>>> origin/johan
                           ),
                         ],
                       ),

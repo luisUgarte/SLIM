@@ -1,9 +1,19 @@
+<<<<<<< HEAD
+=======
+// ignore_for_file: avoid_print
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+>>>>>>> origin/johan
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:miamiga_app/components/headers.dart';
 import 'package:miamiga_app/components/my_button.dart';
+<<<<<<< HEAD
 import 'package:miamiga_app/components/my_textfield.dart';
+=======
+import 'package:miamiga_app/components/my_textfield.dart';// ignore: unused_import
+>>>>>>> origin/johan
 import 'package:miamiga_app/pages/edit_perfil.dart';
 import 'package:miamiga_app/pages/inicio_o_registrar.dart';
 
@@ -20,7 +30,11 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   final fullnameController = TextEditingController();
   final phoneController = TextEditingController();
+<<<<<<< HEAD
   final locationController = TextEditingController();
+=======
+  final ciController = TextEditingController();
+>>>>>>> origin/johan
 
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
@@ -38,11 +52,53 @@ class _PerfilScreenState extends State<PerfilScreen> {
     //i want a navigator to go to the edit perfil page
     Navigator.of(context).push(
       MaterialPageRoute(
+<<<<<<< HEAD
         builder: (context) => const EditPerfil(), 
+=======
+        builder: (context) => EditPerfil(user: widget.user), 
+>>>>>>> origin/johan
       ),
     );
   }
 
+<<<<<<< HEAD
+=======
+  final CollectionReference _registration = 
+        FirebaseFirestore.instance.collection('registration');
+
+  Future<void> _fetchData() async {
+  try {
+    // Check if widget.user is not null before proceeding
+    if (widget.user != null) {
+      final DocumentSnapshot documentSnapshot =
+          await _registration.doc(widget.user!.uid).get();
+
+      // Check if the document exists
+      if (documentSnapshot.exists) {
+        fullnameController.text = documentSnapshot['full name'];
+        phoneController.text = documentSnapshot['phone'].toString();
+        ciController.text = documentSnapshot['ci'].toString();
+      } else {
+        // Handle the case where the document doesn't exist
+        print("No existe el documento.");
+      }
+    } else {
+      // Handle the case where widget.user is null
+      print("El usuario es nulo.");
+    }
+  } catch (e) {
+    // Handle any other errors that may occur during data retrieval
+    print("Error en obtener datos: $e");
+  }
+}
+
+@override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+>>>>>>> origin/johan
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,6 +147,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     ),
                   ),
 
+<<<<<<< HEAD
                   const SizedBox(height: 50),
 
                   MyTextField(
@@ -124,6 +181,54 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 ),
 
                 const SizedBox(height: 70),
+=======
+
+                  FutureBuilder(
+                  future: _fetchData(), 
+                  builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text ('Error: ${snapshot.error}');
+                  } else {
+                    return Column(
+                      children: [
+                        const SizedBox(height: 25),
+                        MyTextField(
+                          controller: fullnameController,
+                          hintText: 'Nombre Completo',
+                          obscureText: false,
+                          isEnabled: false,
+                        ),
+                        const SizedBox(height: 15),
+                        MyTextField(
+                          controller: ciController,
+                          hintText: 'CI',
+                          obscureText: false,
+                          isEnabled: false,
+                        ),
+                        const SizedBox(height: 15),
+                        MyTextField(
+                          controller: phoneController,
+                          hintText: 'Telefono',
+                          obscureText: false,
+                          isEnabled: false,
+                        ),
+                        const SizedBox(height: 15),
+                        MyButton(
+                          onTap: editPersonalData, 
+                          text: 'Editar Perfil'
+                        )
+                      ],
+                    );
+                  }
+                }
+              ),
+
+                  const SizedBox(height: 70),
+>>>>>>> origin/johan
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: Text(
