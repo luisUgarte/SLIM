@@ -1,13 +1,15 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, prefer_const_constructors
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:miamiga_app/components/headers.dart';
-import 'package:miamiga_app/components/my_button.dart';
+import 'package:miamiga_app/components/my_important_btn.dart';
 import 'package:miamiga_app/components/my_textfield.dart';
 import 'package:miamiga_app/components/square_tile.dart';
 import 'package:miamiga_app/pages/reset_pass.dart';
 import 'package:miamiga_app/pages/screens.dart';
+import 'package:miamiga_app/pages/screens_supervisor.dart';
 import 'package:miamiga_app/services/auth_services.dart';
 
 class IniciarSesion extends StatefulWidget {
@@ -28,17 +30,19 @@ class _IniciarSesionState extends State<IniciarSesion> {
   final passwordController = TextEditingController();
 
   Map<String, String> errorMessages = {
-    'invalid-email': 'Correo electrónico inválido',
+    'invalid-email': 'Correo electrónico y Contraseña inválido',
     'user-not-found': 'Usuario no encontrado',
-    'wrong-password': 'Contraseña incorrecto',
-    'email-password': 'Correo o Contraseña incorrectos'
+    'wrong-password': 'Correo electrónico y Contraseña inválido',
   };
+
 
   //sign in method
   void signInUser() async{
 
     //mostrar un carga de inicio
-    showDialog(context: context, builder: (context){
+    showDialog(
+      context: context, 
+      builder: (context) {
       return const Center(
         child: CircularProgressIndicator(),
       );
@@ -50,14 +54,30 @@ class _IniciarSesionState extends State<IniciarSesion> {
         email: emailController.text, 
         password: passwordController.text,
       );
-      //quitar el dialogo de carga
-      Navigator.pop(context);
-      //ir a la pantalla de inicio
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const Screens(),
-        ),
-      );
+      
+      //manejar el rol del usuario
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final role = await fetchUserRole(user.uid);
+        Navigator.pop(context); //quitar el dialogo de carga
+
+        if (role == 'Supervisor') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const ScreenSupervisor(),
+            ),
+          );
+        } else if (role == 'Usuario Normal'){
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const Screens(),
+            ),
+          );
+        }
+      } else {
+        Navigator.pop(context);
+        showErrorMsg("Rol invalido");
+      }
     } on FirebaseAuthException catch (e) {
       //quitar el dialogo de carga
       Navigator.pop(context);
@@ -66,24 +86,46 @@ class _IniciarSesionState extends State<IniciarSesion> {
     }
   }
 
-    void showErrorMsg(String errorCode) {
-      String errorMessage = errorMessages[errorCode] ?? 'Error desconocido';
 
-      showDialog(
-        context: context, 
-        builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.pink,
-          title: Center(
-            child: Text(
-              errorMessage,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-        );
-      },
-    );
+  //fetch user role
+  Future<String?> fetchUserRole(String userId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .withConverter(
+          fromFirestore: (snapshot, _) => snapshot.data()?['role'] ?? '',
+          toFirestore: (role, _) => {'role': role},
+        )
+        .get(GetOptions(source: Source.server));
+
+    if (snapshot.exists) {
+      return snapshot.data();
+    }
+    return null;
   }
+
+
+    void showErrorMsg(String errorCode) {
+      String errorMessage = errorMessages[errorCode] ?? 'Porfavor llene los campos';
+
+      final snackBar = SnackBar(
+      content: Text(
+        errorMessage,
+        style: const TextStyle(
+          color: Colors.white,
+        ),
+      ),
+      backgroundColor: Colors.red,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  
+
+  //no se interfiere cuando se hace un hot reload
+  bool isFirstRun = true;
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -95,21 +137,10 @@ class _IniciarSesionState extends State<IniciarSesion> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 50),
+              const SizedBox(height: 25),
               
               const Header(
                 header: 'Iniciar Sesion',
-              ),
-
-              const SizedBox(height: 50),
-              //bienvenido
-
-              const Text(
-                'Bienvenido usuari@ te hemos extrañado',
-                style: TextStyle(
-                  color: Color.fromRGBO(200, 198, 198, 1),
-                  fontSize: 16,
-                ),
               ),
 
               const SizedBox(height: 25),
@@ -118,9 +149,11 @@ class _IniciarSesionState extends State<IniciarSesion> {
               
               MyTextField(
                 controller: emailController,
+                text: 'Correo Electrónico',
                 hintText: 'Correo Electrónico',
                 obscureText: false,
                 isEnabled: true,
+                isVisible: true,
               ),
 
               const SizedBox(height: 10),
@@ -129,9 +162,11 @@ class _IniciarSesionState extends State<IniciarSesion> {
 
               MyTextField(
                 controller: passwordController,
+                text: 'Contraseña',
                 hintText: 'Contraseña',
                 obscureText: true,
                 isEnabled: true,
+                isVisible: true,
               ),
               
               const SizedBox(height: 10),
@@ -168,7 +203,7 @@ class _IniciarSesionState extends State<IniciarSesion> {
 
               //boton de iniciar sesion
 
-              MyButton(
+              MyImportantBtn(
                 text: 'Iniciar Sesion',
                 onTap: signInUser,
               ),

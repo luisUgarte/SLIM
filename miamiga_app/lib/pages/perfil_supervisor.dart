@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, sort_child_properties_last, non_constant_identifier_names
+// ignore_for_file: sort_child_properties_last
 
 import 'dart:typed_data';
 
@@ -10,22 +10,26 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:miamiga_app/components/headers.dart';
 import 'package:miamiga_app/components/my_important_btn.dart';
-import 'package:miamiga_app/components/my_textfield.dart';// ignore: unused_import
-import 'package:miamiga_app/pages/edit_perfil.dart';
+import 'package:miamiga_app/components/my_textfield.dart';
+import 'package:miamiga_app/pages/editar_perfil_supervisor.dart';
 import 'package:miamiga_app/pages/inicio_o_registrar.dart';
 import 'package:miamiga_app/resources/image_data.dart';
 import 'package:miamiga_app/utils/utils.dart';
 
-class PerfilScreen extends StatefulWidget {
+class PerfilSupervisor extends StatefulWidget {
+
   final User? user;
 
-  const PerfilScreen({super.key, required this.user});
+  const PerfilSupervisor({
+    super.key,
+    required this.user,
+  });
 
   @override
-  State<PerfilScreen> createState() => _PerfilScreenState();
+  State<PerfilSupervisor> createState() => _PerfilSupervisorState();
 }
 
-class _PerfilScreenState extends State<PerfilScreen> {
+class _PerfilSupervisorState extends State<PerfilSupervisor> {
 
   final fullnameController = TextEditingController();
   final phoneController = TextEditingController();
@@ -43,27 +47,18 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
-  void editPersonalData() async{
-    //i want a navigator to go to the edit perfil page
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => EditPerfil(user: widget.user), 
-      ),
-    );
-  }
-
-
-
   final CollectionReference _registration = 
         FirebaseFirestore.instance.collection('users');
 
   Future<void> _fetchData() async {
   try {
+    // Check if widget.user is not null before proceeding
     if (widget.user != null) {
-      final DocumentSnapshot documentSnapshot = await _registration.doc(widget.user!.uid).get();
+      final DocumentSnapshot documentSnapshot =
+          await _registration.doc(widget.user!.uid).get();
 
+      // Check if the document exists
       if (documentSnapshot.exists) {
-        // Fetch user data including latitude and longitude
         fullnameController.text = documentSnapshot['fullname'];
         phoneController.text = documentSnapshot['phone'].toString();
         double latitude = documentSnapshot['lat'] as double;
@@ -72,25 +67,46 @@ class _PerfilScreenState extends State<PerfilScreen> {
         lat = latitude;
         long = longitude;
 
-        // Fetch and format location data
-        final location = await getUserLocation();
-        locationController.text = location;
+        final List<Placemark> placemarks = await placemarkFromCoordinates(
+          latitude, 
+          longitude
+        );
+
+        if (placemarks.isNotEmpty) {
+          final Placemark placemark = placemarks[0];
+          final String street = placemark.thoroughfare ?? '';
+          final String locality = placemark.locality ?? '';
+          final String country = placemark.country ?? '';
+
+          final locationString = '$street, $locality, $country';
+          locationController.text = locationString;
+        } else {
+          locationController.text = 'No se pudo obtener la ubicación';
+        }
       } else {
         // Handle the case where the document doesn't exist
         print("No existe el documento.");
       }
+      /* //obtener del metodo de ubicacion
+      final String location = await getUserLocation();
+
+      //imprimir la ubicacion
+      print("Ubicacion: $location"); */
     } else {
+      // Handle the case where widget.user is null
       print("El usuario es nulo.");
     }
   } catch (e) {
+    // Handle any other errors that may occur during data retrieval
     print("Error en obtener datos: $e");
   }
 }
 
-  @override
+@override
   void initState() {
     super.initState();
     _fetchData();
+    /* getUserLocation(); */
   }
 
   double lat = 0.0;
@@ -127,6 +143,15 @@ class _PerfilScreenState extends State<PerfilScreen> {
     } catch (e) {
       print('Error actualizando ubicacion: $e');
     }
+  }
+
+  void editPersonalData() async{
+    //i want a navigator to go to the edit perfil page
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EditPerfilSupervisor(user: widget.user), 
+      ),
+    );
   }
 
   Uint8List? _image;
@@ -177,14 +202,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
     },
   );
 }
-
-  @override
-  void dispose() {
-    fullnameController.dispose();
-    phoneController.dispose();
-    locationController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -250,54 +267,54 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
 
                   FutureBuilder(
-                      future: _fetchData(), 
-                      builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Text ('Error: ${snapshot.error}');
-                      } else {
-                        return Column(
-                          children: [
-                            const SizedBox(height: 25),
-                            MyTextField(
-                              controller: fullnameController,
-                              text: 'Nombre Completo',
-                              hintText: 'Nombre Completo',
-                              obscureText: false,
-                              isEnabled: false,
-                              isVisible: true,
-                            ),
-                            const SizedBox(height: 15),
-                            MyTextField(
-                              controller: locationController,
-                              text: 'Ubicación',
-                              hintText: 'Ubicación',
-                              obscureText: false,
-                              isEnabled: false,
-                              isVisible: true,
-                            ),
-                            const SizedBox(height: 15),
-                            MyTextField(
-                              controller: phoneController,
-                              text: 'Telefono',
-                              hintText: 'Telefono',
-                              obscureText: false,
-                              isEnabled: false,
-                              isVisible: true,
-                            ),
-                            const SizedBox(height: 25),
-                            MyImportantBtn(
-                              onTap: editPersonalData, 
-                              text: 'Editar Perfil'
-                            ),
-                          ],
-                        );
-                      }
-                    }
-                  ),
+                  future: _fetchData(), 
+                  builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text ('Error: ${snapshot.error}');
+                  } else {
+                    return Column(
+                      children: [
+                        const SizedBox(height: 25),
+                        MyTextField(
+                          controller: fullnameController,
+                          text: 'Nombre Completo',
+                          hintText: 'Nombre Completo',
+                          obscureText: false,
+                          isEnabled: false,
+                          isVisible: true,
+                        ),
+                        const SizedBox(height: 15),
+                        MyTextField(
+                          controller: locationController,
+                          text: 'Ubicación',
+                          hintText: 'Ubicación',
+                          obscureText: false,
+                          isEnabled: false,
+                          isVisible: true,
+                        ),
+                        const SizedBox(height: 15),
+                        MyTextField(
+                          controller: phoneController,
+                          text: 'Telefono',
+                          hintText: 'Telefono',
+                          obscureText: false,
+                          isEnabled: false,
+                          isVisible: true,
+                        ),
+                        const SizedBox(height: 25),
+                        MyImportantBtn(
+                          onTap: editPersonalData, 
+                          text: 'Editar Perfil'
+                        ),
+                      ],
+                    );
+                  }
+                }
+              ),
 
                   const SizedBox(height: 70),
                   Padding(
@@ -315,10 +332,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
       ),
     );
   }
-
-
-
-
   // Function to show the sign-out confirmation dialog
 void _showSignOutConfirmationDialog(BuildContext context) {
   showDialog(

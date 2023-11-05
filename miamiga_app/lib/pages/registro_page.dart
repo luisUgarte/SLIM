@@ -1,19 +1,23 @@
-// ignore_for_file: use_build_context_synchronously, dead_code
+// ignore_for_file: use_build_context_synchronously, dead_code, must_be_immutable
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:miamiga_app/components/headers.dart';
-import 'package:miamiga_app/components/my_button.dart';
-import 'package:miamiga_app/components/my_textfield.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 // ignore: unused_import
-import 'package:miamiga_app/pages/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:miamiga_app/components/headers.dart';
+import 'package:miamiga_app/components/my_important_btn.dart';
+import 'package:miamiga_app/components/my_textfield.dart';
+import 'package:miamiga_app/components/numberKeyboard.dart';
+import 'package:miamiga_app/components/phoneKeyboard.dart';
+
 // ignore: unused_import
 import 'package:miamiga_app/pages/map.dart';
 import 'package:miamiga_app/pages/verify_email.dart';
 
 class RegistroPage extends StatefulWidget {
-
   final Function()? onTap;
 
   const RegistroPage({
@@ -27,6 +31,11 @@ class RegistroPage extends StatefulWidget {
 
 class _RegistroPageState extends State<RegistroPage> {
 
+  /* List<String> roles = ['Usuario Normal', 'Supervisor', 'Administrador']; */
+
+  double lat = 0.0;
+  double long = 0.0;
+
   //text editing controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -34,6 +43,8 @@ class _RegistroPageState extends State<RegistroPage> {
   final fullnameController = TextEditingController();
   final identityController = TextEditingController();
   final phoneController = TextEditingController();
+  final latController = TextEditingController();
+  final longController = TextEditingController();
 
   void signUserUp() async {
   showDialog(
@@ -75,18 +86,20 @@ class _RegistroPageState extends State<RegistroPage> {
         emailController.text.trim(),
         int.parse(identityController.text.trim()),
         int.parse(phoneController.text.trim()),
+        double.parse(latController.text.trim()),
+        double.parse(longController.text.trim()),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Cuenta creada exitosamente'),
+          content: Text('Cuenta creada exitosamente!'),
           backgroundColor: Colors.green,
         ),
       );
 
-      Future.delayed(const Duration(milliseconds: 300), () {
+      /* Future.delayed(const Duration(milliseconds: 300), () {
         Navigator.pop(context);
-      });
+      }); */
 
       //Navigate to the verification screen
       Navigator.of(context).pushReplacement(
@@ -132,16 +145,18 @@ bool areFieldsEmpty() {
     );
   }
 
-  Future<void> createUserDocument(User user, String fullName, String email, int ci, int phone) async {
+  Future<void> createUserDocument(User user, String fullName, String email, int ci, int phone, double lat, double long) async {
     try {
       await FirebaseFirestore.instance
-          .collection('registration')
+          .collection('users')
           .doc(user.uid) // Use the UID as the document ID
           .set({
-            'full name': fullName,
+            'fullname': fullName,
             'email': email,
             'ci': ci,
             'phone': phone,
+            'lat': lat,
+            'long': long,
           });
     } catch (e) {
       // ignore: avoid_print
@@ -149,6 +164,101 @@ bool areFieldsEmpty() {
       Navigator.pop(context);
     }
   }
+
+  Future<Map<String, String>> getUserLocation() async {
+    try {
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high
+      );
+      final List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude, 
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final Placemark placemark = placemarks[0];
+        final String calle = placemark.thoroughfare ?? '';
+        final String localidad = placemark.locality ?? '';
+        final String pais = placemark.country ?? '';
+        
+        return {
+          'street': calle,
+          'locality': localidad,
+          'country': pais,
+        };
+      } else {
+        return {
+          'street': 'No se pudo obtener la ubicacion',
+          'locality': 'No se pudo obtener la ubicacion',
+          'country': 'No se pudo obtener la ubicacion',
+        };
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error al obtener la ubicacion del usuario: $e');
+      return {
+        'street': 'No se pudo obtener la ubicacion',
+        'locality': 'No se pudo obtener la ubicacion',
+        'country': 'No se pudo obtener la ubicacion',
+      };
+    }
+  }
+
+  Future<Map<String, String>> getUserModifiedLocation() async {
+    try {
+      final List<Placemark> placemarks = await placemarkFromCoordinates(
+        lat,
+        long,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final Placemark placemark = placemarks[0];
+        final String calle = placemark.thoroughfare ?? '';
+        final String avenida = placemark.subLocality ?? '';
+        final String localidad = placemark.locality ?? '';
+        final String pais = placemark.country ?? '';
+
+        final String fullStreet = avenida.isNotEmpty
+          ? '$calle, $avenida'
+          : calle;
+
+        return {
+          'street': fullStreet,
+          'locality': localidad,
+          'country': pais,
+        };
+      } else {
+        return {
+          'street': 'No se pudo obtener la ubicacion',
+          'locality': 'No se pudo obtener la ubicacion',
+          'country': 'No se pudo obtener la ubicacion',
+        };
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error al obtener la ubicacion modificada: $e');
+      return {
+        'street': 'No se pudo obtener la ubicacion',
+        'locality': 'No se pudo obtener la ubicacion',
+        'country': 'No se pudo obtener la ubicacion',
+      };
+    }
+  }
+
+  @override
+  void dispose () {
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPassController.dispose();
+    fullnameController.dispose();
+    identityController.dispose();
+    phoneController.dispose();
+    latController.dispose();
+    longController.dispose();
+    super.dispose();
+  }
+
+  String selectedRole = "Usuario Normal";
 
   @override
   Widget build(BuildContext context) {
@@ -160,22 +270,12 @@ bool areFieldsEmpty() {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 50),
+              const SizedBox(height: 25),
 
               const Header(
                 header: 'Registrate',
               ),
 
-              const SizedBox(height: 50),
-              //crear cuenta
-
-              const Text(
-                'Listo para crear tu cuenta!',
-                style: TextStyle(
-                  color: Color.fromRGBO(200, 198, 198, 1),
-                  fontSize: 16,
-                ),
-              ),
 
               const SizedBox(height: 25),
               
@@ -183,9 +283,11 @@ bool areFieldsEmpty() {
               
               MyTextField(
                 controller: emailController,
+                text: 'Correo Electrónico',
                 hintText: 'Correo Electrónico',
                 obscureText: false,
                 isEnabled: true,
+                isVisible: true,
               ),
 
               const SizedBox(height: 10),
@@ -194,9 +296,11 @@ bool areFieldsEmpty() {
 
               MyTextField(
                 controller: passwordController,
+                text: 'Contraseña',
                 hintText: 'Contraseña',
                 obscureText: true,
                 isEnabled: true,
+                isVisible: true,
               ),
               
               const SizedBox(height: 10),
@@ -205,9 +309,11 @@ bool areFieldsEmpty() {
 
               MyTextField(
                 controller: confirmPassController,
+                text: 'Confirmar Contraseña',
                 hintText: 'Confirmar Contraseña',
                 obscureText: true,
                 isEnabled: true,
+                isVisible: true,
               ),
               
               const SizedBox(height: 10),
@@ -216,47 +322,145 @@ bool areFieldsEmpty() {
 
               MyTextField(
                 controller: fullnameController,
+                text: 'Nombre Completo',
                 hintText: 'Nombre Completo',
                 obscureText: false,
                 isEnabled: true,
+                isVisible: true,
               ),
               
               const SizedBox(height: 10),
 
               //campo CI
 
-              MyTextField(
+              MyNumberKeyboard(
                 controller: identityController,
+                text: 'Carnet de Identidad',
                 hintText: 'Carnet de Identidad',
                 obscureText: false,
                 isEnabled: true,
+                isVisible: true,
               ),
               
               const SizedBox(height: 10),
 
               //campo Numero de Telefono
 
-              MyTextField(
+              MyPhoneKeyboard(
                 controller: phoneController,
+                text: 'Telefono',
                 hintText: 'Telefono',
                 obscureText: false,
                 isEnabled: true,
+                isVisible: true,
               ),
-              
-              
-              const SizedBox(height: 10),
 
+              const SizedBox(height: 10),
+              
+              /* DropdownButtonFormField(
+                value: selectedRole,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedRole = newValue!;
+                  });
+                },
+                items: roles.map((String role) {
+                  return DropdownMenuItem(
+                    value: role,
+                    child: Text(role),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Seleccione un Rol',
+                )
+              ), */
+              
+              
+              FutureBuilder<Map<String, String>>(
+                future: getUserModifiedLocation(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text ('Error: ${snapshot.error}');
+                  } else {
+                    final locationData = snapshot.data!;
+                    final calle = locationData['street'];
+                    final localidad = locationData['locality'];
+                    final pais = locationData['country'];
+                    return Column(
+                      children: [
+                        /*hidden lat and long*/
+                        const SizedBox(height: 10),
+                        MyTextField(
+                          controller: latController,
+                          text: 'Latitud', 
+                          hintText: 'Latitud',
+                          obscureText: false,
+                          isEnabled: false,
+                          isVisible: false,
+                        ),
+                        const SizedBox(height: 10),
+                        MyTextField(
+                          controller: longController,
+                          text: 'Longitud',
+                          hintText: 'Longitud',
+                          obscureText: false,
+                          isEnabled: false,
+                          isVisible: false,
+                        ),
+                        /*hidden lat and long*/
+                        const SizedBox(height: 10),
+                        Text('Calle: $calle'),
+                        Text('Localidad: $localidad'),
+                        Text('Pais: $pais'),
+                        /* Text('Ubicacion modificado: ${latController.text}, ${longController.text}') */
+                      ],
+                    );
+                  }
+                }
+              ),
+
+              const SizedBox(height: 10),
               //seleccionar ubicacion
 
               ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(const Color.fromRGBO(248, 181, 149, 1)),
+                ),
+                onPressed: () async {
+                  final selectedLocation = await Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) {
                         return const CurrentLocationScreen();
                       },
                     ),
                   );
+                  if (selectedLocation != null && selectedLocation is Map<String, double>) {
+                    setState(() {
+                      lat = selectedLocation['latitude']!;
+                      long = selectedLocation['longitude']!;
+                    });
+                    final locationData = await getUserModifiedLocation();
+                    final calle = locationData['street'];
+                    final localidad = locationData['locality'];
+                    final pais = locationData['country'];
+                    latController.text = lat.toString();
+                    longController.text = long.toString();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Column(
+                          children: [
+                            Text('Calle: $calle'),
+                            Text('Localidad: $localidad'),
+                            Text('Pais: $pais'),
+                          ]
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
                 }, 
                 child: const Text('Seleccionar Ubicacion'),
               ),
@@ -266,12 +470,12 @@ bool areFieldsEmpty() {
 
               //boton de iniciar sesion
 
-              MyButton(
+              MyImportantBtn(
                 text: 'Registrate',
                 onTap: signUserUp,
               ),
               
-              const SizedBox(height: 50),       
+              const SizedBox(height: 25),       
 
               //ya tiene cuenta puede ir al iniciar sesion
               Row(
@@ -296,6 +500,7 @@ bool areFieldsEmpty() {
                   ),
                 ],
               ),
+              const SizedBox(height: 25),  
             ],
           ),
         ),

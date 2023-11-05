@@ -3,7 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:miamiga_app/components/headers.dart';
-import 'package:miamiga_app/components/my_button.dart';
+import 'package:miamiga_app/components/my_important_btn.dart';
 import 'package:miamiga_app/components/my_textfield.dart';
 
 class ResetPassword extends StatefulWidget {
@@ -20,7 +20,6 @@ class _ResetPasswordState extends State<ResetPassword> {
   @override
   void dispose() {
     emailController.dispose();
-
     super.dispose();
   }
 
@@ -75,23 +74,25 @@ class _ResetPasswordState extends State<ResetPassword> {
               const Header(
                 header: 'Restablecer Contraseña',
               ),
-              const SizedBox(height: 50),
+              /* const SizedBox(height: 50),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 25.0),
                 child: Text(
                   'Ingrese su correo para restablecer contraseña',
                   textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 10),
+              ), */
+              const SizedBox(height: 25),
               MyTextField(
                 controller: emailController,
+                text: 'Correo Electrónico',
                 hintText: 'Correo Electrónico',
                 obscureText: false,
                 isEnabled: true,
+                isVisible: true,
               ),
               const SizedBox(height: 25),
-              MyButton(
+              MyImportantBtn(
                 text: 'Enviar',
                 onTap: passwordReset,
               ),

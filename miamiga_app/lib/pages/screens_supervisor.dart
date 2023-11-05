@@ -1,23 +1,23 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:miamiga_app/model/datos_denunciante.dart';
 import 'package:miamiga_app/model/datos_incidente.dart';
-import 'package:miamiga_app/pages/sobre.dart';
-import 'package:miamiga_app/pages/inicio.dart';
+import 'package:miamiga_app/pages/incidente_supervisor.dart';
+import 'package:miamiga_app/pages/detail_user.dart';
+import 'package:miamiga_app/pages/perfil_supervisor.dart';
 
-import 'package:miamiga_app/pages/perfil.dart';
+class ScreenSupervisor extends StatefulWidget {
 
-class Screens extends StatefulWidget {
-  const Screens({Key? key}) : super(key: key);
+  const ScreenSupervisor({
+    super.key,
+  });
 
   @override
-  _ScreensState createState() => _ScreensState();
+  State<ScreenSupervisor> createState() => _ScreenSupervisorState();
 }
 
-class _ScreensState extends State<Screens> {
+class _ScreenSupervisorState extends State<ScreenSupervisor> {
   final User? user = FirebaseAuth.instance.currentUser;
   int _selectedIndex = 0;
   late List<Widget> _screens;
@@ -26,15 +26,14 @@ class _ScreensState extends State<Screens> {
     FirebaseAuth.instance.signOut();
   }
 
-
   @override
   void initState() {
     super.initState();
 
     _screens = [
-      InicioScreen(user: user!, incidentData: IncidentData(description: '', date: DateTime.now(), lat: 0, long: 0, imageUrl: '', audioUrl: ''), denunciaData: DenuncianteData(ci: 1, fullName: '', phone: 1, lat: 0, long: 0)),
-      const SobreScreen(),
-      PerfilScreen(user: user!),
+      CasePage(item: user!.uid),
+      ReadCases(),
+      PerfilSupervisor(user: user!),
     ];
   }
 
@@ -42,6 +41,8 @@ class _ScreensState extends State<Screens> {
   void dispose() {
     super.dispose();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -64,8 +65,8 @@ class _ScreensState extends State<Screens> {
                   gap: 8,
                   padding: const EdgeInsets.all(16),
                   tabs: const [
-                    GButton(icon: Icons.home, text: 'Inicio'),
-                    GButton(icon: Icons.info, text: 'Sobre'),
+                    GButton(icon: Icons.folder_copy_rounded, text: 'Evidencia'),
+                    GButton(icon: Icons.cases_rounded, text: 'Casos'),
                     GButton(icon: Icons.person, text: 'Perfil'),
                   ],
                   selectedIndex: _selectedIndex,

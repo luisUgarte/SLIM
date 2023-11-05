@@ -1,6 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:miamiga_app/pages/auth_page.dart';
 // ignore: unused_import
 import 'package:miamiga_app/pages/inicio.dart';
 import 'package:miamiga_app/pages/inicio_o_registrar.dart';
@@ -25,19 +28,19 @@ class _SplashScreenState extends State<SplashScreen>
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
     Future.delayed(const Duration(seconds: 3), () async{
-      final isLoggedIn = await checkUserLoggedIn();
 
       setState(() {
         isLoading = false;
       });
-
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (context) => 
-          isLoggedIn ? const Screens() : const LoginOrRegister(),
-      ));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const AuthPage()
+        ),
+      );
     });
   }
+
+  
 
   @override
   void dispose() {

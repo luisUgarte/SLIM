@@ -1,60 +1,120 @@
-// ignore_for_file: unused_field
-
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-
 class CurrentLocationScreen extends StatefulWidget {
+  
   const CurrentLocationScreen({super.key});
 
   @override
   State<CurrentLocationScreen> createState() => _CurrentLocationScreenState();
 }
 
-class _CurrentLocationScreenState extends State<CurrentLocationScreen> {
-
-  late GoogleMapController googleMapController;
-
-  static const CameraPosition initialCameraPosition = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14,
+class _CurrentLocationScreenState extends State<CurrentLocationScreen> with WidgetsBindingObserver{
+  final BitmapDescriptor customMarker = BitmapDescriptor.defaultMarkerWithHue(
+    BitmapDescriptor.hueGreen,
   );
 
+  LatLng selectedLatLng = LatLng(initialCameraPosition.target.latitude, initialCameraPosition.target.longitude);
+  late GoogleMapController googleMapController;
   Set<Marker> markers = {};
+  LatLng selectedLocation = initialCameraPosition.target;
 
+  bool inSelectionMode = true;
 
-  Future<Position> _requestLocationPermission() async {
-    bool serviceEnabled;
-
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-
-    if(!serviceEnabled) {
-      return Future.error('Los servicios de ubicacion estan deshabilitados.');
-    }
-
-    permission = await Geolocator.checkPermission();
-
-    if(permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-
-      if(permission == LocationPermission.denied) {
-        return Future.error('Los permisos de ubicacion estan denegados.');
-      }
-    }
-
-    if(permission == LocationPermission.deniedForever) {
-      return Future.error('Los permisos de ubicacion estan denegados para siempre.');
-    }
-    Position position = await Geolocator.getCurrentPosition();
-
-    return position;
+  @override
+  void initState() {
+    super.initState();
+    _getLocationAndSetCameraPosition();
+    WidgetsBinding.instance.addObserver(this);
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    googleMapController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _getLocationAndSetCameraPosition() async {
+    Position? position;
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        // Show a dialog to enable location services
+        _showLocationServiceDialog();
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission != LocationPermission.whileInUse &&
+            permission != LocationPermission.always) {
+          return Future.error('Permisos de ubicación denegados.');
+        }
+      }
+
+      position = await Geolocator.getCurrentPosition();
+    } catch (e) {
+      print('Error obteniendo ubicación actual: $e');
+    }
+
+    if (position != null) {
+      setState(() {
+        initialCameraPosition = CameraPosition(
+          target: LatLng(position!.latitude, position.longitude),
+          zoom: 14,
+        );
+        selectedLatLng = LatLng(position.latitude, position.longitude);
+        markers.clear();
+        markers.add(
+          Marker(
+            markerId: const MarkerId('currentLocation'),
+            position: selectedLatLng,
+            icon: BitmapDescriptor.defaultMarker,
+          ),
+        );
+      });
+    }
+  }
+
+  // Show a dialog to enable location services
+  Future<void> _showLocationServiceDialog() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Servicios de ubicación deshabilitados'),
+          content: const Text('Por favor habilite los servicios de ubicación en tus configuraciones.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Abrir configuraciones'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Geolocator.openLocationSettings();
+              },
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // App has come to the foreground
+      _getLocationAndSetCameraPosition();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,36 +127,63 @@ class _CurrentLocationScreenState extends State<CurrentLocationScreen> {
         onMapCreated: (GoogleMapController controller) {
           googleMapController = controller;
         },
-      ),
-
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          Position position = await _requestLocationPermission();
-          googleMapController.animateCamera(
-            CameraUpdate.newCameraPosition(
-              CameraPosition(
-                target: LatLng(position.latitude, position.longitude),
-                zoom: 14,
-              ),
-            ),
-          );
-          markers.clear();
-
-          markers.add(
-            Marker(
-              markerId: const MarkerId('currentLocation'), 
-              position: LatLng(
-                position.latitude, 
-                position.longitude
-                ),
-              ),
-            );
-
-          setState(() {});
+        onTap: (latLng) {
+          _onMarkerTrapped(latLng);
         },
-        label: const Text('Ubicacion actual'),
-        icon: const Icon(Icons.location_history),
-      )
+      ),
+      floatingActionButton: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        children: [
+          FloatingActionButton.extended(
+            onPressed: () {
+              final selectedLocation = {
+                'latitude': markers.first.position.latitude,
+                'longitude': markers.first.position.longitude,
+              };
+              Navigator.of(context).pop(selectedLocation);
+            },
+            label: inSelectionMode
+              ? const Text('Confirmar')
+              : const Text('Confirmado'),
+            icon: const Icon(Icons.check),
+          ),
+          const SizedBox(width: 16),
+          FloatingActionButton.extended(
+            onPressed: () {
+              // Cancel button action
+              Navigator.of(context).pop();
+            },
+            label: const Text('Cancelar'),
+            icon: const Icon(Icons.cancel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onMarkerTrapped(LatLng latLng) {
+    setState(() {
+      selectedLatLng = latLng;
+    });
+    _updateMarkerLocation(selectedLatLng);
+  }
+
+  void _updateMarkerLocation(LatLng selectedLatLng) {
+    setState(() {
+      selectedLocation = selectedLatLng;
+    });
+    markers.clear();
+    markers.add(
+      Marker(
+        markerId: const MarkerId('currentLocation'),
+        position: selectedLocation,
+        icon: customMarker,
+      ),
     );
   }
 }
+
+CameraPosition initialCameraPosition = const CameraPosition(
+  target: LatLng(-17.38414, -66.16670),
+  zoom: 14,
+);

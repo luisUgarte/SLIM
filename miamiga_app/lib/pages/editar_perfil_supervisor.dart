@@ -11,19 +11,19 @@ import 'package:miamiga_app/components/my_textfield.dart';
 import 'package:miamiga_app/components/phoneKeyboard.dart';
 import 'package:miamiga_app/pages/map.dart';
 
-class EditPerfil extends StatefulWidget {
+class EditPerfilSupervisor extends StatefulWidget {
   final User? user;
 
-  const EditPerfil({
+  const EditPerfilSupervisor({
     super.key,
     required this.user,
   });
 
   @override
-  State<EditPerfil> createState() => _EditPerfilState();
+  State<EditPerfilSupervisor> createState() => _EditPerfilSupervisorState();
 }
 
-class _EditPerfilState extends State<EditPerfil> {
+class _EditPerfilSupervisorState extends State<EditPerfilSupervisor> {
 
   late LocationData modifiedLocation;
 

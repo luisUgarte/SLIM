@@ -2,14 +2,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:miamiga_app/components/important_button.dart';
+import 'package:miamiga_app/model/datos_denunciante.dart';
+import 'package:miamiga_app/model/datos_incidente.dart';
 import 'package:miamiga_app/pages/denunciar_incidente.dart';
 
 class InicioScreen extends StatefulWidget {
   final User? user;
-
+  final IncidentData incidentData;
+  final DenuncianteData denunciaData;
   const InicioScreen({
     super.key,
     required this.user,
+    required this.incidentData,
+    required this.denunciaData,
   });
 
   @override
@@ -33,12 +38,12 @@ class _InicioScreenState extends State<InicioScreen> {
 
       try {
         DocumentSnapshot snapshot = await FirebaseFirestore.instance
-            .collection('registration')
+            .collection('users')
             .doc(user.uid)
             .get();
 
         if (snapshot.exists) {
-          final fullName = snapshot.get('full name');
+          final fullName = snapshot.get('fullname');
           return fullName;
         } else {
           return 'Usuario desconocido';
@@ -55,12 +60,56 @@ class _InicioScreenState extends State<InicioScreen> {
 }
 
   void denunciarScreen() async{
-    //i want a navigator to go to the edit perfil page
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const DenunciaIncidente(), 
-      ),
+      //i want a navigator to go to the edit perfil page
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => DenunciaIncidente(
+            user: widget.user, 
+            incidentData: widget.incidentData, 
+            denuncianteData: widget.denunciaData,
+          ), 
+        ),
+      );
+    }
+
+    void alert() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Aviso Importante!'),
+          content: const Text('La cantidad de denuncias que puede realizar es 1 por semana para prevenir el abuso del sistema'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => DenunciaIncidente(
+                      user: widget.user, 
+                      incidentData: widget.incidentData, 
+                      denuncianteData: widget.denunciaData,
+                    ), 
+                  ),
+                );
+              },
+              child: const Text(
+                'Entendido',
+                style: TextStyle(
+                  color: Color.fromRGBO(248, 181, 149, 1),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -93,7 +142,7 @@ class _InicioScreenState extends State<InicioScreen> {
                           const SizedBox(height: 100),
                           ImportantButton(
                             text: 'DENUNCIAR',
-                            onTap: denunciarScreen,
+                            onTap: alert,
                             icon: Icons.warning_rounded,
                           ),
                         ],
