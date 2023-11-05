@@ -17,12 +17,9 @@ class AlertaScreen extends StatefulWidget {
   final IncidentData incidentData;
   const AlertaScreen({
     super.key,
-<<<<<<< HEAD
-=======
     required this.user,
     required this.denuncianteData,
     required this.incidentData,
->>>>>>> origin/johan
   });
 
   @override
