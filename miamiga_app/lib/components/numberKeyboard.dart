@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class MyTextField extends StatefulWidget {
+class MyNumberKeyboard extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
   final String text;
@@ -8,7 +8,7 @@ class MyTextField extends StatefulWidget {
   final bool isEnabled;
   final bool isVisible;
 
-  const MyTextField({
+  const MyNumberKeyboard({
     Key? key,
     required this.controller,
     required this.hintText,
@@ -19,10 +19,10 @@ class MyTextField extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<MyTextField> createState() => _MyTextFieldState();
+  State<MyNumberKeyboard> createState() => _MyNumberKeyboardState();
 }
 
-class _MyTextFieldState extends State<MyTextField> {
+class _MyNumberKeyboardState extends State<MyNumberKeyboard> {
   bool isFocused = false;
   bool isPasswordVisible = false;
 
@@ -48,6 +48,8 @@ class _MyTextFieldState extends State<MyTextField> {
                 TextField(
                   controller: widget.controller,
                   obscureText: widget.obscureText && !isPasswordVisible,
+                  maxLength: 10,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     enabledBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.white),

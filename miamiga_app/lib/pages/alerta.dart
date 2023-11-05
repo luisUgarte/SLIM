@@ -1,15 +1,28 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:miamiga_app/components/important_button.dart';
 import 'package:miamiga_app/components/my_button.dart';
 import 'package:miamiga_app/components/my_important_btn.dart';
+import 'package:miamiga_app/model/datos_denunciante.dart';
+import 'package:miamiga_app/model/datos_incidente.dart';
 import 'package:miamiga_app/pages/alerta_oficial.dart';
 import 'package:miamiga_app/pages/denunciar_incidente.dart';
 import 'package:miamiga_app/pages/screens.dart';
 
 class AlertaScreen extends StatefulWidget {
-  
+  final User? user;
+  final DenuncianteData denuncianteData;
+  final IncidentData incidentData;
   const AlertaScreen({
     super.key,
+<<<<<<< HEAD
+=======
+    required this.user,
+    required this.denuncianteData,
+    required this.incidentData,
+>>>>>>> origin/johan
   });
 
   @override
@@ -18,15 +31,19 @@ class AlertaScreen extends StatefulWidget {
 
 class _AlertaScreenState extends State<AlertaScreen> {
 
+  List<XFile> pickedImages = [];
+  List<XFile> pickedVideoFile = [];
+
   void editarDenuncia() async{
     //i want a navigator to go to the edit perfil page
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const DenunciaIncidente(), 
+        builder: (context) => DenunciaIncidente(user: widget.user, incidentData: widget.incidentData, denuncianteData: widget.denuncianteData), 
       ),
     );
   }
 
+  
   void alert() async {
     showDialog(
       context: context,
@@ -39,18 +56,32 @@ class _AlertaScreenState extends State<AlertaScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancelar'),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: Colors.grey,
+                ),
+              ),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
+
+                //crear la denuncia
+                createCase(widget.user, widget.denuncianteData, widget.incidentData);
+
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => const AlertaOficialScreen(), 
                   ),
                 );
               },
-              child: const Text('Aceptar'),
+              child: const Text(
+                'Aceptar',
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
             ),
           ],
         );
@@ -65,6 +96,40 @@ class _AlertaScreenState extends State<AlertaScreen> {
         builder: (context) => const Screens(), 
       ),
     );
+  }
+
+  void createCase(User? user, DenuncianteData denuncianteData, IncidentData incidentData) async {
+    //i want to create the document of my case
+
+    final CollectionReference _case = 
+        FirebaseFirestore.instance.collection('cases');
+
+    await _case.add({
+
+      'denunciante': {
+        'fullname': denuncianteData.fullName,
+        'ci': denuncianteData.ci,
+        'phone': denuncianteData.phone,
+        'lat': denuncianteData.lat,
+        'long': denuncianteData.long,
+      },
+
+      'incidente': {
+        'descripcionIncidente': incidentData.description,
+        'fechaIncidente': incidentData.date,
+        'lat': incidentData.lat,
+        'long': incidentData.long,
+        'imageUrl': incidentData.imageUrl,
+        'audioUrl': incidentData.audioUrl,
+      },
+
+      'estado': 'pendiente',
+      'fecha': DateTime.now(),
+      'supervisor': '',
+      'oficial': '',
+      'user': user?.uid,
+    });
+    
   }
 
   @override

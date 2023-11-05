@@ -45,6 +45,17 @@ dependencies:
   location: ^5.0.3
   geolocator: ^10.1.0
   url_launcher: ^6.1.14
+  geocoding: ^2.1.0
+  permission_handler: ^11.0.1
+  package_info_plus: ^4.1.0
+  image_picker: ^1.0.4
+  file_picker: ^6.0.0
+  video_player: ^2.7.2
+  audioplayers: ^5.2.0
+  path_provider: ^2.1.1
+  multiple_images_picker: ^1.0.1
+  just_audio: ^0.9.35
+  pinput: ^3.0.1
  
   
 

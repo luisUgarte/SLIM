@@ -1,45 +1,40 @@
-// ignore_for_file: use_build_context_synchronously, unnecessary_this, unnecessary_null_comparison, avoid_print, duplicate_ignore, dead_code, unused_local_variable
-
+// ignore_for_file: unnecessary_null_comparison, use_build_context_synchronously
 
 import 'dart:io';
 
-
 import 'package:audioplayers/audioplayers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
-
 import 'package:miamiga_app/components/headers.dart';
 import 'package:miamiga_app/components/limit_characters.dart';
 import 'package:miamiga_app/components/my_important_btn.dart';
 import 'package:miamiga_app/components/my_textfield.dart';
 import 'package:miamiga_app/components/row_button.dart';
-import 'package:miamiga_app/model/datos_denunciante.dart';
-import 'package:miamiga_app/model/datos_incidente.dart';
-import 'package:miamiga_app/pages/datos_denunciante.dart';
 import 'package:miamiga_app/pages/map.dart';
+import 'package:miamiga_app/pages/supervisor.dart';
 
+class CasePage extends StatefulWidget {
 
+  final String item;
 
-class DenunciaIncidente extends StatefulWidget {
-  final User? user;
-  final IncidentData incidentData;
-  final DenuncianteData denuncianteData;
-  
-  const DenunciaIncidente({
-    super.key,
-    required this.user,
-    required this.incidentData,
-    required this.denuncianteData,
-  });
+  const CasePage({
+    super.key, 
+    required this.item
+    });
 
   @override
-  State<DenunciaIncidente> createState() => _DenunciaIncidenteState();
+  State<CasePage> createState() => _CasePageState();
 }
 
-class _DenunciaIncidenteState extends State<DenunciaIncidente> {
+class _CasePageState extends State<CasePage> {
+
+  final desController = TextEditingController();
+  final dateController = TextEditingController();
+  final latController = TextEditingController();
+  final longController = TextEditingController();
 
   List<XFile> pickedImages = [];
   String? selectedAudioPath;
@@ -51,105 +46,13 @@ class _DenunciaIncidenteState extends State<DenunciaIncidente> {
 
   String audioTitle = '';
 
+  List<File> pickedFiles = [];
+  bool isDocumentReceived = false;
 
+  
 
   bool isImageReceived = false;
   bool isMediaReceived = false;
-
-  DateTime date = DateTime.now();
-
-  final desController = TextEditingController();
-  /* final locationController = TextEditingController(); */
-
-  final latController = TextEditingController();
-  final longController = TextEditingController();
-
-  @override
-  void dispose() {
-    desController.dispose();
-    latController.dispose();
-    longController.dispose();
-    audioPlayer.dispose();
-    super.dispose();
-  }
-  
-  
-  void saveIncidenteData() {
-    widget.incidentData.description = desController.text;
-    widget.incidentData.date = date;
-  try {
-      widget.incidentData.lat = double.parse(latController.text);
-    } catch (e) {
-      print("Error parsing latitude");
-
-      widget.incidentData.lat = 0.0;
-    }
-    try {
-      widget.incidentData.long = double.parse(longController.text);
-    } catch (e) {
-      print("Error parsing longitude");
-
-      widget.incidentData.long = 0.0;
-    }
-    if (isImageReceived && pickedImages.isNotEmpty) {
-      widget.incidentData.imageUrl = pickedImages[0].path;
-    } else {
-      widget.incidentData.imageUrl = '';
-    }
-    if (isMediaReceived && selectedAudioPath != null) {
-      widget.incidentData.audioUrl = selectedAudioPath!;
-    } else {
-      widget.incidentData.audioUrl = '';
-    }
-  }
-
-  void siguiente() async {
-    saveIncidenteData();
-
-    print('Descripción: ${widget.incidentData.description}');
-    print('Fecha: ${widget.incidentData.date}');
-    print('Latitud: ${widget.incidentData.lat}');
-    print('Longitud: ${widget.incidentData.long}');
-    print('URL de imagen: ${widget.incidentData.imageUrl}');
-    print('URL de audio: ${widget.incidentData.audioUrl}');
-
-  try {
-    if (this.widget.incidentData.description.isEmpty ||
-        this.widget.incidentData.date == null ||
-        this.widget.incidentData.lat == 0.0 ||
-        this.widget.incidentData.long == 0.0 ||
-        !isImageReceived || !isMediaReceived) {
-      showErrorMsg(context, 'Por favor, ingrese todos los datos del incidente');
-    } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => DatosDenunciante(
-            user: widget.user,
-            incidentData: widget.incidentData,
-            denuncianteData: widget.denuncianteData,
-          ),
-        ),
-      );
-    }
-  } catch (e) {
-    // Handle any exceptions that occur during navigation.
-    showErrorMsg(context, 'Un error a occurido: $e');
-  }
-}
-
-
-  void showErrorMsg(BuildContext context, String errorMsg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(errorMsg),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
-
-  
-
-  
 
   Future selectImageFile() async {
     print('selectFile: pickedImage: $pickedImages');
@@ -168,9 +71,8 @@ class _DenunciaIncidenteState extends State<DenunciaIncidente> {
     }
   }
 
-
-void cargarImagen() async {
-  showDialog(
+  void cargarImagen() async{
+    showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
@@ -256,8 +158,105 @@ void cargarImagen() async {
   );
 }
 
+  Future<void> selectDocumentFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx'],
+    );
 
-Future<void> pickAudio() async {
+    if (result != null) {
+      setState(() {
+        pickedFiles.add(File(result.files.single.path!));
+        isDocumentReceived = true;
+      });
+    }
+  }
+
+  void cargarDocumento() async{
+    showDialog(
+      context: context, 
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: SizedBox(
+            width: 300,
+            height: 300,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Text(
+                    'Seleccionar Documento',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: PageView.builder(
+                    itemCount: pickedFiles.length,
+                    itemBuilder: (context, index) {
+                      final file = pickedFiles[index];
+                      return GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                content: SizedBox(
+                                  child: Text(
+                                    'Documento: ${file.path}',
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        child: Text(
+                          'Documento: ${file.path}',
+                        ),
+                      );
+                    }
+                  ),
+                ),
+                if (pickedFiles.isEmpty)
+                  SizedBox(
+                    width: 100,
+                    height: 100,
+                    child: ElevatedButton.icon(
+                      onPressed: selectDocumentFile, 
+                      icon: const Icon(
+                        Icons.file_copy,
+                        size: 50,
+                      ),
+                      label: const SizedBox.shrink(),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.all(0),
+                        backgroundColor: const Color.fromRGBO(248, 181, 149, 1),
+                    ),  
+                  ),
+                ),
+                if (pickedFiles.isNotEmpty)
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                        const Color.fromRGBO(248, 181, 149, 1)
+                      )
+                    ),
+                    onPressed: selectDocumentFile, 
+                    child: const Text('Agregar otro documento'),
+                )
+              ],
+            ),
+          ),
+        );
+      }
+    );
+  }
+  
+
+  Future<void> pickAudio() async {
   FilePickerResult? result = await FilePicker.platform.pickFiles(
     type: FileType.audio,
   );
@@ -383,13 +382,11 @@ void cargarAudio() async{
     },
   );
 }
-  
 
-  double lat = 0.0;
-  double long = 0.0;
+double lat = 0.0;
+double long = 0.0;
 
-
-  Future<Map<String, String>> getUserModifiedLocation() async {
+Future<Map<String, String>> getUserModifiedLocation() async {
     try {
       final List<Placemark> placemarks = await placemarkFromCoordinates(
         lat,
@@ -429,83 +426,171 @@ void cargarAudio() async{
       };
     }
   }
+  void createEvidence() async{
 
+    showDialog(
+      context: context, 
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+    );
 
-  bool changesMade = false;
+    try {
+      if (areFieldsEmpty()) {
+        Navigator.pop(context);
+        showErrorMsg('Por favor llene todos los campos');
+        return;
+      }
 
+      await createUserDocument(
+        pickedImages[0].path,
+        selectedAudioPath!,
+        pickedFiles[0].path,
+        desController.text.trim(),
+        date,
+        double.parse(latController.text.trim()),
+        double.parse(longController.text.trim()), 
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Evidencia enviada exitosamente!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error al enviar el evidencia: $e');
+      Navigator.pop(context);
+    }
+  }
+
+  Future<void> createUserDocument(String imageUrl, String audioUrl, String document, String descripcion, DateTime fecha, double lat, double long) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('evidence')
+          .doc()
+          .set({
+            'imageUrl': imageUrl,
+            'audioUrl': audioUrl,
+            'document': document,
+            'descripcion': descripcion,
+            'fecha': fecha,
+            'lat': lat,
+            'long': long,
+          });
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error al crear documento del usuario: $e');
+      Navigator.pop(context);
+    }
+  }
+
+  bool areFieldsEmpty() {
+    return desController.text.trim().isEmpty
+        || dateController.text.trim().isEmpty
+        || latController.text.trim().isEmpty
+        || longController.text.trim().isEmpty
+        || !isImageReceived
+        || !isMediaReceived
+        || !isDocumentReceived
+        || lat == 0.0
+        || long == 0.0;
+    }
+
+  void showErrorMsg(String errorMsg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          errorMsg,
+          style: const TextStyle(
+            color: Colors.white,
+          )
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    pickedImages.clear();
+    pickedFiles.clear();
+    desController.dispose();
+    dateController.dispose();
+    latController.dispose();
+    longController.dispose();
+    super.dispose();
+  }
+
+  DateTime date = DateTime.now();
   TimeOfDay timeOfDay = TimeOfDay.now();
+  bool changesMade = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-          child: SingleChildScrollView(
-            child: Stack( // Wrap the content with a Stack
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-        
-                    const SizedBox(height: 15),
-                    
-        
-                    Row(
-                      children: [
-                        const Header(
-                          header: 'Datos del Incidente',
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                    ),
-        
-                    // dos botones para subir imagen y audio del incidente en una
-        
-                    const SizedBox(height: 25),
-        
-                    Row(
-                      children: [
-                        RowButton(
-                          onTap: cargarImagen, 
-                          text: 'Imagen',
-                          icon: Icons.image,
-                        ),
-                        RowButton(
-                          onTap: cargarAudio, 
-                          text: 'Audio',
-                          icon: Icons.audio_file,
-                        ),
-                      ],
-                    ),
-                    
-        
-                    //campo de descripcion del incidente
-        
-                    const SizedBox(height: 25),
-        
-                    LimitCharacter(
+        child: SingleChildScrollView(
+          child: Stack(
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 15),
+
+                  const Row(
+                    children: [
+                      Header(
+                        header: 'Datos del Evidencia',
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  Row(
+                    children: [
+                      RowButton(
+                        onTap: cargarImagen, 
+                        text: 'Imagen',
+                        icon: Icons.image,
+                      ),
+                      RowButton(
+                        onTap: cargarDocumento, 
+                        text: 'Documento',
+                        icon: Icons.file_copy,
+                      ),
+                      RowButton(
+                        onTap: cargarAudio, 
+                        text: 'Audio',
+                        icon: Icons.audiotrack,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 30),
+                  
+                  LimitCharacter(
                       controller: desController,
-                      text: 'Descripción del Incidente', // 'Descripción del Incidente
-                      hintText: 'Descripción del Incidente',
+                      text: 'Descripción del Evidencia', // 'Descripción del Incidente
+                      hintText: 'Descripción del Evidencia',
                       obscureText: false,
                       isEnabled: true,
                       isVisible: true,
                     ),
-        
-                    //campo de fecha del incidente
-        
-                    const SizedBox(height: 15),
-                    Center(
+
+                  const SizedBox(height: 15),
+                  
+                  Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
-                            'Seleccionar Fecha del Incidente',
+                            'Seleccionar Fecha del Evidencia',
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
@@ -559,114 +644,107 @@ void cargarAudio() async{
                         ],
                       ),
                     ),
-        
-        
-                    //campo de lugar de incidente
-        
-                    const SizedBox(height: 15),
-        
-                    FutureBuilder<Map<String, String>>(
-                      future: getUserModifiedLocation(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        } else if (snapshot.hasError) {
-                          return Text ('Error: ${snapshot.error}');
-                        } else {
-                          final locationData = snapshot.data!;
-                          final calle = locationData['street'];
-                          final localidad = locationData['locality'];
-                          final pais = locationData['country'];
-                          return Column(
-                            children: [
-                              /*hidden lat and long*/
-                              const SizedBox(height: 10),
-                              MyTextField(
-                                controller: latController,
-                                text: 'Latitud',
-                                hintText: 'Latitud',
-                                obscureText: false,
-                                isEnabled: false,
-                                isVisible: false,
-                              ),
-                              const SizedBox(height: 10),
-                              MyTextField(
-                                controller: longController,
-                                text: 'Longitud',
-                                hintText: 'Longitud',
-                                obscureText: false,
-                                isEnabled: false,
-                                isVisible: false,
-                              ),
-                              /*hidden lat and long*/
-                              const SizedBox(height: 10),
-                              Text('Calle: $calle'),
-                              Text('Localidad: $localidad'),
-                              Text('Pais: $pais'),
-                            ],
-                          );
-                        }
-                      }
-                    ),
-        
-                    const SizedBox(height: 10),
-        
-                    ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(const Color.fromRGBO(248, 181, 149, 1)),
-                      ),
-                      onPressed: () async {
-                        final selectedLocation = await Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return const CurrentLocationScreen();
-                            },
-                          ),
-                        );
-                        if (selectedLocation != null && selectedLocation is Map<String, double>) {
-                          setState(() {
-                            lat = selectedLocation['latitude']!;
-                            long = selectedLocation['longitude']!;
-                          });
-                          final locationData = await getUserModifiedLocation();
-                          final calle = locationData['street'];
-                          final localidad = locationData['locality'];
-                          final pais = locationData['country'];
-                          latController.text = lat.toString();
-                          longController.text = long.toString();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Column(
-                                children: [
-                                  Text('Calle: $calle'),
-                                  Text('Localidad: $localidad'),
-                                  Text('Pais: $pais'),
-                                ]
-                              ),
-                              backgroundColor: Colors.green,
+
+                  FutureBuilder<Map<String, String>>(
+                    future: getUserModifiedLocation(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text ('Error: ${snapshot.error}');
+                      } else {
+                        final locationData = snapshot.data!;
+                        final calle = locationData['street'];
+                        final localidad = locationData['locality'];
+                        final pais = locationData['country'];
+                        return Column(
+                          children: [
+                            /*hidden lat and long*/
+                            const SizedBox(height: 10),
+                            MyTextField(
+                              controller: latController,
+                              text: 'Latitud',
+                              hintText: 'Latitud',
+                              obscureText: false,
+                              isEnabled: false,
+                              isVisible: false,
                             ),
-                          );
-                          changesMade = true;
-                        }
-                      }, 
-                      child: const Text('Seleccionar Ubicacion'),
-                    ),
-                    
-                    //boton de siguiente
-        
-                    const SizedBox(height: 25),
-        
-                    MyImportantBtn(
-                      onTap: siguiente, 
-                      text: 'Siguiente',
-                    )
-            
-                  ],
-                ),
-              ],
-            ),
-          ),
+                            const SizedBox(height: 10),
+                            MyTextField(
+                              controller: longController,
+                              text: 'Longitud',
+                              hintText: 'Longitud',
+                              obscureText: false,
+                              isEnabled: false,
+                              isVisible: false,
+                            ),
+                            /*hidden lat and long*/
+                            const SizedBox(height: 10),
+                            Text('Calle: $calle'),
+                            Text('Localidad: $localidad'),
+                            Text('Pais: $pais'),
+                          ],
+                        );
+                      }
+                    }
+                  ),
+
+                  const SizedBox(height: 15),
+                  
+                  ElevatedButton(
+                        style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(const Color.fromRGBO(248, 181, 149, 1)),
+                          ),
+                          onPressed: () async {
+                            final selectedLocation = await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const CurrentLocationScreen();
+                                },
+                              ),
+                            );
+                            if (selectedLocation != null && selectedLocation is Map<String, double>) {
+                              setState(() {
+                                lat = selectedLocation['latitude']!;
+                                long = selectedLocation['longitude']!;
+                              });
+                              final locationData = await getUserModifiedLocation();
+                              final calle = locationData['street'];
+                              final localidad = locationData['locality'];
+                              final pais = locationData['country'];
+                              latController.text = lat.toString();
+                              longController.text = long.toString();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Column(
+                                    children: [
+                                      Text('Calle: $calle'),
+                                      Text('Localidad: $localidad'),
+                                      Text('Pais: $pais'),
+                                    ]
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                              changesMade = true;
+                            }
+                          }, 
+                          child: const Text('Seleccionar Ubicacion'),
+                        ),
+
+                  const SizedBox(height: 30),
+
+                  MyImportantBtn(
+                    onTap: createEvidence,
+                    text: 'Finalizar'
+                  ),
+
+                ],
+              ),
+            ],
+          )
         ),
+      )
     );
   }
 }

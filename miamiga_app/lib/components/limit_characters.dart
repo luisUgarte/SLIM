@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class MyTextField extends StatefulWidget {
+class LimitCharacter extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
   final String text;
@@ -8,7 +8,7 @@ class MyTextField extends StatefulWidget {
   final bool isEnabled;
   final bool isVisible;
 
-  const MyTextField({
+  const LimitCharacter({
     Key? key,
     required this.controller,
     required this.hintText,
@@ -19,12 +19,13 @@ class MyTextField extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<MyTextField> createState() => _MyTextFieldState();
+  State<LimitCharacter> createState() => _LimitCharacterState();
 }
 
-class _MyTextFieldState extends State<MyTextField> {
+class _LimitCharacterState extends State<LimitCharacter> {
   bool isFocused = false;
   bool isPasswordVisible = false;
+  int characterCount = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +49,8 @@ class _MyTextFieldState extends State<MyTextField> {
                 TextField(
                   controller: widget.controller,
                   obscureText: widget.obscureText && !isPasswordVisible,
+                  maxLines: 5,
+                  maxLength: 30,
                   decoration: InputDecoration(
                     enabledBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.white),
@@ -66,6 +69,11 @@ class _MyTextFieldState extends State<MyTextField> {
                       isFocused = true;
                     });
                   },
+                  onChanged: (value) {
+                    setState(() {
+                      characterCount = value.length;
+                    });
+                  },
                   onSubmitted: (value) {
                     setState(() {
                       isFocused = false;
@@ -78,21 +86,32 @@ class _MyTextFieldState extends State<MyTextField> {
                   },
                 ),
                 if (widget.obscureText)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isPasswordVisible = !isPasswordVisible;
-                      });
-                    },
-                    child: Icon(
-                      isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isPasswordVisible = !isPasswordVisible;
+                        });
+                      },
+                      child: Icon(
+                        isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
+
+            if (characterCount > 100) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Alcanzaste el máximo de caracteres',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ],
         ),
       ),

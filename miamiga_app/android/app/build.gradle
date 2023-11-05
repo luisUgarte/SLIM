@@ -49,6 +49,7 @@ android {
         targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -66,4 +67,7 @@ flutter {
 
 dependencies {
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    implementation 'androidx.multidex:multidex:2.0.1'
+
+    implementation("com.google.firebase:firebase-auth")
 }

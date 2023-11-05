@@ -18,8 +18,11 @@ class RowButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.only(top: 10, bottom: 10),
+        width: 80,
+        
         margin: const EdgeInsets.symmetric(horizontal: 25.0),
+        
         decoration: BoxDecoration(
           color: const Color.fromRGBO(249, 181, 149, 1),
           borderRadius: BorderRadius.circular(5),
@@ -38,7 +41,7 @@ class RowButton extends StatelessWidget {
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontSize: 10,
               ),
             ),
           ],
