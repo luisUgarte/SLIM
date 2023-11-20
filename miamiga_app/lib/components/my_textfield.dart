@@ -7,6 +7,8 @@ class MyTextField extends StatefulWidget {
   final bool obscureText;
   final bool isEnabled;
   final bool isVisible;
+  final ValueChanged<String>? onChanged;
+  final FormFieldValidator<String>? validator;
 
   const MyTextField({
     Key? key,
@@ -16,6 +18,8 @@ class MyTextField extends StatefulWidget {
     required this.obscureText,
     required this.isEnabled,
     required this.isVisible,
+    this.onChanged,
+    this.validator,
   }) : super(key: key);
 
   @override
@@ -23,8 +27,32 @@ class MyTextField extends StatefulWidget {
 }
 
 class _MyTextFieldState extends State<MyTextField> {
-  bool isFocused = false;
-  bool isPasswordVisible = false;
+  late bool isFocused;
+  late bool isPasswordVisible;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    isFocused = false;
+    isPasswordVisible = false;
+  }
+
+  void setFocused(bool focused) {
+    if (isFocused != focused) {
+      setState(() {
+        isFocused = focused;
+      });
+    }
+  }
+
+  void setPasswordVisibility(bool visible) {
+    if (isPasswordVisible != visible) {
+      setState(() {
+        isPasswordVisible = visible;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,76 +60,68 @@ class _MyTextFieldState extends State<MyTextField> {
       visible: widget.isVisible,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 25.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.text,
-              style: TextStyle(
-                color: isFocused ? Colors.black : Colors.black,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.text,
+                style: TextStyle(
+                  color: isFocused ? Colors.black : Colors.black,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Stack(
-              alignment: Alignment.centerRight,
-              children: [
-                TextField(
-                  controller: widget.controller,
-                  obscureText: widget.obscureText && !isPasswordVisible,
-                  decoration: InputDecoration(
-                    enabledBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
+              const SizedBox(height: 8),
+              Stack(
+                alignment: Alignment.centerRight,
+                children: [
+                  TextField(
+                    controller: widget.controller,
+                    obscureText: widget.obscureText && !isPasswordVisible,
+                    onChanged: widget.onChanged,
+                    decoration: InputDecoration(
+                      enabledBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey.shade400),
+                      ),
+                      fillColor: Colors.grey.shade100,
+                      filled: true,
+                      hintText: widget.hintText,
+                      hintStyle: TextStyle(color: Colors.grey[400]),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey.shade400),
-                    ),
-                    fillColor: Colors.grey.shade100,
-                    filled: true,
-                    hintText: widget.hintText,
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                  ),
-                  enabled: widget.isEnabled,
-                  onTap: () {
-                    setState(() {
-                      isFocused = true;
-                    });
-                  },
-                  onSubmitted: (value) {
-                    setState(() {
-                      isFocused = false;
-                    });
-                  },
-                  onEditingComplete: () {
-                    setState(() {
-                      isFocused = false;
-                    });
-                  },
-                ),
-                if (widget.obscureText)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GestureDetector(
+                    enabled: widget.isEnabled,
                     onTap: () {
-                      setState(() {
-                        isPasswordVisible = !isPasswordVisible;
-                      });
+                      setFocused(true);
                     },
-                    child: Icon(
-                      isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                    ),
+                    onSubmitted: (value) {
+                      setFocused(false);
+                    },
+                    onEditingComplete: () {
+                      setFocused(false);
+                    },
                   ),
-                ),
-              ],
-            ),
-          ],
+                  if (widget.obscureText)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          setPasswordVisibility(!isPasswordVisible);
+                        },
+                        child: Icon(
+                          isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
-
-
-
-
-

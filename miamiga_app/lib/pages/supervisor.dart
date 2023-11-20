@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:miamiga_app/components/headers.dart';
 import 'package:miamiga_app/components/listview.dart';
-import 'package:miamiga_app/pages/incidente_supervisor.dart';
+import 'package:miamiga_app/pages/evidencia.dart';
 
 class Supervisor extends StatefulWidget {
   const Supervisor({super.key});
