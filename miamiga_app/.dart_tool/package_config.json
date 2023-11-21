@@ -950,11 +950,7 @@
       "languageVersion": "3.0"
     }
   ],
-<<<<<<< HEAD
-  "generated": "2023-11-20T20:11:54.636266Z",
-=======
-  "generated": "2023-11-21T06:24:09.463702Z",
->>>>>>> origin/master
+  "generated": "2023-11-21T06:37:19.091203Z",
   "generator": "pub",
   "generatorVersion": "3.1.5"
 }
