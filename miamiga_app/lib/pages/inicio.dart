@@ -1,10 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:miamiga_app/components/important_button.dart';
 import 'package:miamiga_app/model/datos_denunciante.dart';
 import 'package:miamiga_app/model/datos_incidente.dart';
-import 'package:miamiga_app/pages/denunciar_incidente.dart';
+import 'package:miamiga_app/pages/incidente.dart';
 
 class InicioScreen extends StatefulWidget {
   final User? user;
@@ -72,40 +73,7 @@ class _InicioScreenState extends State<InicioScreen> {
       );
     }
 
-    void alert() async {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Aviso Importante!'),
-          content: const Text('La cantidad de denuncias que puede realizar es 1 por semana para prevenir el abuso del sistema'),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => DenunciaIncidente(
-                      user: widget.user, 
-                      incidentData: widget.incidentData, 
-                      denuncianteData: widget.denunciaData,
-                    ), 
-                  ),
-                );
-              },
-              child: const Text(
-                'Entendido',
-                style: TextStyle(
-                  color: Color.fromRGBO(248, 181, 149, 1),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+    
 
   @override
   void dispose() {
@@ -125,7 +93,11 @@ class _InicioScreenState extends State<InicioScreen> {
                 future: getUserName(widget.user),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: Color.fromRGBO(255, 87, 110, 1),
+                      )
+                    );
                   } else {
                     final userName = snapshot.data ?? 'Usuario desconocido';
                     return Center(
@@ -142,7 +114,7 @@ class _InicioScreenState extends State<InicioScreen> {
                           const SizedBox(height: 100),
                           ImportantButton(
                             text: 'DENUNCIAR',
-                            onTap: alert,
+                            onTap: denunciarScreen,
                             icon: Icons.warning_rounded,
                           ),
                         ],

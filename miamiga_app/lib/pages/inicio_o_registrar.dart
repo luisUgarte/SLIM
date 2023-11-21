@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:miamiga_app/pages/login_page.dart';
+import 'package:miamiga_app/pages/inicio_sesion.dart';
 import 'package:miamiga_app/pages/registro_page.dart';
 
 class LoginOrRegister extends StatefulWidget {

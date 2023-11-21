@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:miamiga_app/model/datos_denunciante.dart';
 import 'package:miamiga_app/model/datos_incidente.dart';
-import 'package:miamiga_app/pages/incidente_supervisor.dart';
-import 'package:miamiga_app/pages/detail_user.dart';
+import 'package:miamiga_app/pages/evidencia.dart';
+import 'package:miamiga_app/pages/detalles.dart';
 import 'package:miamiga_app/pages/perfil_supervisor.dart';
 
 class ScreenSupervisor extends StatefulWidget {
@@ -19,7 +19,7 @@ class ScreenSupervisor extends StatefulWidget {
 
 class _ScreenSupervisorState extends State<ScreenSupervisor> {
   final User? user = FirebaseAuth.instance.currentUser;
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   late List<Widget> _screens;
 
   void signUserOut(BuildContext context) {
@@ -31,8 +31,9 @@ class _ScreenSupervisorState extends State<ScreenSupervisor> {
     super.initState();
 
     _screens = [
-      CasePage(item: user!.uid),
-      ReadCases(),
+      CasePage(item: user!.uid, user: user!),
+      ReadCases(user: user!, incidentData: IncidentData(description: '', date: DateTime.now(), lat: 0, long: 0, imageUrls: [], audioUrl: ''), 
+      denuncianteData: DenuncianteData(ci: 1, fullName: '', phone: 1, lat: 0, long: 0, documentId: '', estado: '')),
       PerfilSupervisor(user: user!),
     ];
   }
