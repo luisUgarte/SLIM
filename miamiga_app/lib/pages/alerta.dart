@@ -34,7 +34,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
     List<String> downloadUrls = [];
     for (File file in files) {
       String fileName = Path.basename(file.path);
-      Reference ref = FirebaseStorage.instance.ref().child('Users/$userId/Images/$fileName');
+      Reference ref = FirebaseStorage.instance.ref().child('Cases/$userId/Images/$fileName');
       UploadTask uploadTask = ref.putFile(file);
       TaskSnapshot taskSnapshot = await uploadTask;
       final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
@@ -45,7 +45,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
 
   Future<String> uploadAudioFile(String userId, File file) async {
     String fileName = Path.basename(file.path);
-    Reference ref = FirebaseStorage.instance.ref().child('Users/$userId/Audios/$fileName');
+    Reference ref = FirebaseStorage.instance.ref().child('Cases/$userId/Audios/$fileName');
     UploadTask uploadTask = ref.putFile(file);
     TaskSnapshot taskSnapshot = await uploadTask;
     final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
@@ -85,7 +85,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
               child: const Text(
                 'Aceptar',
                 style: TextStyle(
-                  color: Colors.red,
+                  color: Color.fromRGBO(255, 87, 110, 1),
                 ),
               ),
             ),
@@ -158,7 +158,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
       //i want to create the document of my case
 
       final CollectionReference _case = 
-          FirebaseFirestore.instance.collection('cases');
+      FirebaseFirestore.instance.collection('cases');
 
       await _case.add({
 
@@ -233,7 +233,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
 
                       const SizedBox(height: 50),
                       ImportantButton(
-                        text: 'ALERTA',
+                        text: 'DENUNCIAR',
                         onTap: alert,
                         icon: Icons.warning_rounded,
                     ),

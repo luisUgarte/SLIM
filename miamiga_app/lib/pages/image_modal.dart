@@ -7,8 +7,14 @@ import 'package:image_picker/image_picker.dart';
 class ImageModal extends StatefulWidget {
   final List<XFile> pickedImages;
   final Future<List<XFile>> Function(ImageSource source) onImagesSelected;
+  // final Function(List<XFile>) updateImages;
 
-  const ImageModal({super.key, required this.pickedImages, required this.onImagesSelected});
+  const ImageModal({
+    super.key, 
+    required this.pickedImages, 
+    required this.onImagesSelected,
+    // required this.updateImages,
+  });
 
   @override
   _ImageModalState createState() => _ImageModalState();
@@ -16,6 +22,11 @@ class ImageModal extends StatefulWidget {
 
 class _ImageModalState extends State<ImageModal> {
 
+  // void updateImages(List<XFile> newImages) {
+  //   setState(() {
+  //     widget.pickedImages.addAll(newImages);
+  //   });
+  // }
   
   @override
   Widget build(BuildContext context) {
@@ -26,16 +37,6 @@ class _ImageModalState extends State<ImageModal> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            // const Padding(
-            //   padding: EdgeInsets.all(24.0),
-            //   child: Text(
-            //     'Cargar',
-            //     style: TextStyle(
-            //       fontSize: 20.0,
-            //       fontWeight: FontWeight.bold,
-            //     ),
-            //   ),
-            // ),
             Expanded(
               child: PageView.builder(
                 itemCount: widget.pickedImages.length,

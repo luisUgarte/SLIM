@@ -79,10 +79,10 @@ class _RegistroPageState extends State<RegistroPage> {
     }
 
     if (!isPasswordValid(passwordController.text)) {
-      Navigator.pop(context); //cerrar el dialogo en caso de error
-      showErrorMsg("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
+  Navigator.pop(context); //cerrar el dialogo en caso de error
+  showErrorMsg("La contraseña debe tener al menos 8 caracteres, incluyendo al menos una letra mayúscula, una letra minúscula, un número y un caracter especial como @, #, \$, & o *");
+  return;
+}
 
     if (!isFullNameValid(fullnameController.text.trim())) {
       Navigator.pop(context); //cerrar el dialogo en caso de error
@@ -180,7 +180,20 @@ bool areFieldsEmpty() {
   }
 
   bool isPasswordValid(String password) {
-    return password.length >= 6;
+    Pattern upperCasePattern = r'[A-Z]';
+    Pattern lowerCasePattern = r'[a-z]';
+    Pattern digitCasePattern = r'[0-9]';
+    Pattern specialCasePattern = r'[@#$&*]';
+    RegExp upperCaseRegex = RegExp(upperCasePattern as String);
+    RegExp lowerCaseRegex = RegExp(lowerCasePattern as String);
+    RegExp digitCaseRegex = RegExp(digitCasePattern as String);
+    RegExp specialCaseRegex = RegExp(specialCasePattern as String);
+
+    return password.length >= 8 &&
+        upperCaseRegex.hasMatch(password) &&
+        lowerCaseRegex.hasMatch(password) &&
+        digitCaseRegex.hasMatch(password) &&
+        specialCaseRegex.hasMatch(password);
   }
 
   bool isFullNameValid(String fullName) {

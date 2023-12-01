@@ -208,7 +208,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
               child: const Text(
                 "Guardar",
                 style: TextStyle(
-                  color: Colors.red,
+                  color: Color.fromRGBO(255, 87, 110, 1),
                 ),
               ),
               onPressed: () {
@@ -259,8 +259,33 @@ class _PerfilScreenState extends State<PerfilScreen> {
                   ),
                   const SizedBox(height: 25),
                   Stack(
-                    children: [
-                      CircleAvatar(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        if (_image != null) {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Dialog(
+                                insetPadding: const EdgeInsets.symmetric(horizontal: 80, vertical: 300),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(MediaQuery.of(context).size.width * 0.6), // make it circular
+                                ),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: MediaQuery.of(context).size.width * 0.8, // adjust this value as needed
+                                    height: MediaQuery.of(context).size.width * 0.8, // adjust this value as needed
+                                    child: ClipOval(
+                                      child: Image.memory(_image!, fit: BoxFit.cover),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        }
+                      },
+                      child: CircleAvatar(
                         radius: 40,
                         backgroundColor: Colors.white,
                         child: _image != null
@@ -277,27 +302,22 @@ class _PerfilScreenState extends State<PerfilScreen> {
                                 color: Colors.black,
                               ),
                       ),
-                      // if (_image == null)
-                      //   const Positioned.fill(
-                      //     child: Center(
-                      //       child: CircularProgressIndicator(),
-                      //     ),
-                      //   ),
-                      Positioned(
-                        child: IconButton(
-                          onPressed: () {
-                            selectedImageProfile();
-                          },
-                          icon: const Icon(
-                            Icons.add_a_photo,
-                            color: Colors.black,
-                          ),
+                    ),
+                    Positioned(
+                      child: IconButton(
+                        onPressed: () {
+                          selectedImageProfile();
+                        },
+                        icon: const Icon(
+                          Icons.add_a_photo,
+                          color: Colors.black,
                         ),
-                        bottom: -10,
-                        left: 45,
                       ),
-                    ],
-                  ),
+                      bottom: -10,
+                      left: 45,
+                    ),
+                  ],
+                ),
                   FutureBuilder(
                       future: null,
                       builder: (context, snapshot) {
@@ -423,7 +443,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
               child: const Text(
                 'Cerrar Sesión',
                 style: TextStyle(
-                  color: Colors.red,
+                  color: Color.fromRGBO(255, 87, 110, 1),
                 ),
               ),
             ),

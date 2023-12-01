@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, avoid_print, duplicate_ignore
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -28,36 +28,23 @@ class InicioScreen extends StatefulWidget {
 class _InicioScreenState extends State<InicioScreen> {
 
   Future<String> getUserName(User? user) async {
-    
   if (user != null) {
-    // Check if the user is signed in with Google
-    if (user.providerData.any((userInfo) => userInfo.providerId == 'google.com')) {
-      // If signed in with Google, return the user's display name
-      return user.displayName ?? 'Usuario desconocido';
-    } else {
-      // If not signed in with Google, you can implement a different logic
-      // to get the user's name based on your authentication method.
-      // For example, if using email/password, you can fetch it from Firestore
-      // or another database using the user's UID.
-      // Here's an example using Firestore:
+    try {
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
-      try {
-        DocumentSnapshot snapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-
-        if (snapshot.exists) {
-          final fullName = snapshot.get('fullname');
-          return fullName;
-        } else {
-          return 'Usuario desconocido';
-        }
-      } catch (e) {
-        // ignore: avoid_print
-        print('Error getting user name: $e');
+      if (snapshot.exists) {
+        final fullName = snapshot.get('fullname');
+        return fullName;
+      } else {
         return 'Usuario desconocido';
       }
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error getting user name: $e');
+      return 'Usuario desconocido';
     }
   } else {
     return 'Usuario desconocido';
@@ -77,22 +64,22 @@ class _InicioScreenState extends State<InicioScreen> {
       );
     }
 
-    Future<String> fetchCaseData(String? userId) async {
-      if (userId == null) {
-        throw Exception('User ID is null');
-      }
+    // Future<String> fetchCaseData(String? userId) async {
+    //   if (userId == null) {
+    //     throw Exception('User ID is null');
+    //   }
 
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('cases')
-          .where('user', isEqualTo: userId)
-          .get();
+    //   final querySnapshot = await FirebaseFirestore.instance
+    //       .collection('cases')
+    //       .where('user', isEqualTo: userId)
+    //       .get();
 
-      if (querySnapshot.docs.isEmpty) {
-        return 'No hay casos';
-      }
+    //   if (querySnapshot.docs.isEmpty) {
+    //     return 'No hay casos';
+    //   }
 
-      return querySnapshot.docs.first.id;
-    }
+    //   return querySnapshot.docs.first.id;
+    // }
 
     Future<UserRegister> fetchDenuncianteData(String? userId) async {
       if (userId == null) {
@@ -119,17 +106,6 @@ class _InicioScreenState extends State<InicioScreen> {
     
     Future<void> createAlert(User? user) async {
     try {
-      showDialog(
-        context: context, 
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Color.fromRGBO(255, 87, 110, 1),
-            ),
-          );
-        }
-      );
       // Extract UID from user
       String? userId = user?.uid;
 
@@ -138,7 +114,7 @@ class _InicioScreenState extends State<InicioScreen> {
         return;
       }
 
-      String caseId = await fetchCaseData(userId);
+      // String caseId = await fetchCaseData(userId);
 
       UserRegister userRegister = await fetchDenuncianteData(userId);
 
@@ -147,10 +123,7 @@ class _InicioScreenState extends State<InicioScreen> {
 
       QuerySnapshot<Object?> userAlerts = await _alert.where('user', isEqualTo: userId).get();
 
-      QuerySnapshot<Object?> querySnapshot = await _alert.orderBy('alert', descending: true).limit(1).get();
-      int currentMaxAlert = querySnapshot.docs.isNotEmpty ? querySnapshot.docs.first.get('alert') : 0;
-
-      int newAlert = currentMaxAlert + 1;
+      int newAlert = userAlerts.docs.isNotEmpty ? userAlerts.docs.first.get('alert') + 1 : 1;
 
       // Show a confirmation dialog
       bool confirmAlert = await showDialog(
@@ -178,7 +151,7 @@ class _InicioScreenState extends State<InicioScreen> {
                 child: const Text(
                   'Confirmar',
                   style: TextStyle(
-                    color: Colors.red,
+                    color: Color.fromRGBO(255, 87, 110, 1),
                   ),
                 ),
               ),
@@ -188,14 +161,29 @@ class _InicioScreenState extends State<InicioScreen> {
       );
 
       if (confirmAlert == true) {
+        showDialog(
+          context: context, 
+          barrierDismissible: false, 
+          builder: (BuildContext context) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color.fromRGBO(255, 87, 110, 1),
+              ),
+            );
+          }
+        );
+
         if (userAlerts.docs.isNotEmpty) {
         DocumentSnapshot<Object?> userAlert = userAlerts.docs.first;
 
         await _alert.doc(userAlert.id).update({
           'alert': newAlert,
-          'case': caseId,
           'fecha': DateTime.now(),
         });
+
+        // await FirebaseFirestore.instance.collection('cases').doc(caseId).update({
+        //   'alertCount': newAlert,
+        // });
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -215,11 +203,7 @@ class _InicioScreenState extends State<InicioScreen> {
             'lat': userRegister.lat,
             'long': userRegister.long,
             'fecha': DateTime.now(),
-            'case': caseId,
-          });
-
-          await FirebaseFirestore.instance.collection('cases').doc(caseId).update({
-            'alert': newAlert,
+            // 'case': caseId,
           });
 
           Navigator.of(context).pop();

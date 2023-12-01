@@ -94,17 +94,27 @@ class _CurrentLocationScreenState extends State<CurrentLocationScreen> with Widg
           content: const Text('Por favor habilite los servicios de ubicación en tus configuraciones.'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Abrir configuraciones'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            TextButton(
+              child: const Text(
+                'Abrir configuraciones',
+                style: TextStyle(
+                  color: Color.fromRGBO(255, 87, 110, 1),
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
                 Geolocator.openLocationSettings();
               },
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
             ),
           ],
         );
@@ -151,6 +161,7 @@ class _CurrentLocationScreenState extends State<CurrentLocationScreen> with Widg
               ? const Text('Confirmar')
               : const Text('Confirmado'),
             icon: const Icon(Icons.check),
+            backgroundColor: Colors.green,
           ),
           const SizedBox(width: 16),
           FloatingActionButton.extended(
@@ -161,6 +172,7 @@ class _CurrentLocationScreenState extends State<CurrentLocationScreen> with Widg
             },
             label: const Text('Cancelar'),
             icon: const Icon(Icons.cancel),
+            backgroundColor: Colors.red,
           ),
         ],
       ),

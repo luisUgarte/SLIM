@@ -35,7 +35,7 @@ class AuthService {
       if (userDoc.exists) {
         final Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
 
-        if (userData['fullname'] != null && userData['ci'] != null && userData['phone'] != null && userData['lat'] != null && userData['long'] != null) {
+        if (userData['fullname'] != null && userData['email'] != null && userData['ci'] != null && userData['phone'] != null && userData['lat'] != null && userData['long'] != null) {
           Navigator.of(context).pushReplacementNamed('/screens_usuario');
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

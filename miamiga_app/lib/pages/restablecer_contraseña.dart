@@ -43,6 +43,9 @@ class _ResetPasswordState extends State<ResetPassword> {
           return const AlertDialog(
             content: Text(
               'Enlace para restablecer contraseña a sido enviado! Revisa su correo',
+              style: TextStyle(
+                color: Color.fromRGBO(255, 87, 110, 1),
+              ),
             ),
           );
         }

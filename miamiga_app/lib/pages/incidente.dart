@@ -164,11 +164,18 @@ class _DenunciaIncidenteState extends State<DenunciaIncidente> {
     }
   }
 
+  // void updateImages(List<XFile> newImages) {
+  //   setState(() {
+  //     pickedImages.addAll(newImages);
+  //   });
+  // }
+
   void cargarImagen() async {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return ImageModal(
+        // updateImages: updateImages,
         pickedImages: pickedImages,
         onImagesSelected: (ImageSource source) async {
           if (source == ImageSource.camera) {

@@ -70,7 +70,7 @@ class _EditPerfilSupervisorState extends State<EditPerfilSupervisor> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Datos actualizados exitosamente!'),
+          content: Text('Guardado exitosamente!'),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 3),
         ),
@@ -216,7 +216,7 @@ class _EditPerfilSupervisorState extends State<EditPerfilSupervisor> {
                                   // Handle the error, e.g. by showing an error message to the user
                                 }
                               },
-                              text: 'Actualizar'
+                              text: 'Guardar'
                             ),
                         ],
                       );

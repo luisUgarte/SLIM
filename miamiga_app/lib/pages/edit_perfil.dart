@@ -56,19 +56,30 @@ class _EditPerfilState extends State<EditPerfil> {
           currentData.data() as Map<String, dynamic>;
       print('currentValues_________________$currentValues');
 
-      if (currentValues['fullname'] == null ||
-          currentValues['phone'] == null ||
-          currentValues['lat'] == null ||
-          currentValues['long'] == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Complete tu perfil antes de actualizar'),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 3),
-            ),
-          );
-          return false;
-        }
+      // if (currentValues['fullname'] == null ||
+      //     currentValues['phone'] == null ||
+      //     currentValues['lat'] == null ||
+      //     currentValues['long'] == null) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(
+      //         content: Text('Complete tu perfil antes de actualizar'),
+      //         backgroundColor: Colors.red,
+      //         duration: Duration(seconds: 3),
+      //       ),
+      //     );
+      //     return false;
+      //   }
+
+      if (fullName.isEmpty || phone.toString().isEmpty || lat.toString().isEmpty || long.toString().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Complete su perfil antes de actualizar'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return false;
+      }
 
       if (currentValues['fullname'] == fullName &&
           currentValues['phone'] == phone &&
@@ -96,7 +107,7 @@ class _EditPerfilState extends State<EditPerfil> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Datos actualizados exitosamente!'),
+            content: Text('Guardado exitosamente!'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 3),
           ),
@@ -118,40 +129,6 @@ class _EditPerfilState extends State<EditPerfil> {
       return false; // An error occurred
     }
   }
-
-//   Future<bool> _isProfileComplete(String userId) async {
-//   try {
-//     // Get a reference to the Firestore collection
-//     final DocumentReference userDocument = _registration.doc(userId);
-
-//     // Fetch user data
-//     final DocumentSnapshot documentSnapshot = await userDocument.get();
-
-//     // Check if the document exists
-//     if (documentSnapshot.exists) {
-//       final Map<String, dynamic> userData =
-//           documentSnapshot.data() as Map<String, dynamic>;
-
-//       // Check if required fields are not null
-//       if (userData['fullname'] != null &&
-//           userData['phone'] != null &&
-//           userData['lat'] != null &&
-//           userData['long'] != null) {
-//         return true; // Profile is complete
-//       } else {
-//         return false; // Profile is incomplete
-//       }
-//     } else {
-//       // Handle the case where the document doesn't exist
-//       print("No existe el documento.");
-//       return false; // Profile is incomplete
-//     }
-//   } catch (e) {
-//     // Handle any other errors that may occur during data retrieval
-//     print("Error en obtener datos: $e");
-//     return false; // Profile is incomplete
-//   }
-// }
 
 
   double lat = 0.0;
@@ -456,7 +433,7 @@ class _EditPerfilState extends State<EditPerfil> {
                                 // Handle the error, e.g. by showing an error message to the user
                               }
                             },
-                            text: 'Actualizar'
+                            text: 'Guardar'
                           ),
                         ],
                       );

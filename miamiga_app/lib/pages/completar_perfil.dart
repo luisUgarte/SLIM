@@ -32,7 +32,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
     final Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
 
     // Check if all profile fields are filled
-    if (userData['fullname'] != null && userData['ci'] != null && userData['phone'] != null && userData['lat'] != null && userData['long'] != null) {
+    if (userData['fullname'] != null && userData['email'] != null && userData['ci'] != null && userData['phone'] != null && userData['lat'] != null && userData['long'] != null) {
       // Profile is complete, navigate to main screen
       Navigator.of(context).pushReplacementNamed('/screens_usuario');
     } else {
@@ -109,6 +109,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
     try {
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'fullname': user.displayName,
+        'email': user.email,
         'ci': ci,
         'phone': phone,
         'lat': lat,

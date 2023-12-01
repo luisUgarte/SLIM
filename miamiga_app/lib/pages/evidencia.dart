@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:miamiga_app/components/headers.dart';
-import 'package:miamiga_app/components/limit_characters.dart';
 import 'package:miamiga_app/components/limit_characters_second.dart';
 import 'package:miamiga_app/components/my_important_btn.dart';
 import 'package:miamiga_app/components/my_textfield.dart';
@@ -66,7 +65,7 @@ class _CasePageState extends State<CasePage> {
     for (File file in files) {
       String fileName = Path.basename(file.path);
       Reference ref =
-          FirebaseStorage.instance.ref().child('EvidenceImages/$caseId/$fileName');
+          FirebaseStorage.instance.ref().child('Evidences/$caseId/Images/$fileName');
       UploadTask uploadTask = ref.putFile(file);
       TaskSnapshot taskSnapshot = await uploadTask;
       final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
@@ -78,7 +77,7 @@ class _CasePageState extends State<CasePage> {
   Future<String> uploadAudioFile(String caseId, File file) async {
     String fileName = Path.basename(file.path);
     Reference ref =
-        FirebaseStorage.instance.ref().child('EvidenceAudios/$caseId/$fileName');
+        FirebaseStorage.instance.ref().child('Evidences/$caseId/Audios/$fileName');
     UploadTask uploadTask = ref.putFile(file);
     TaskSnapshot taskSnapshot = await uploadTask;
     final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
@@ -91,7 +90,7 @@ class _CasePageState extends State<CasePage> {
 
     if (extension == '.pdf' || extension == '.doc' || extension == '.docx') {
       Reference ref =
-          FirebaseStorage.instance.ref().child('EvidenceDocuments/$caseId/$fileName');
+          FirebaseStorage.instance.ref().child('Evidences/$caseId/Documents/$fileName');
       UploadTask uploadTask = ref.putFile(file);
       TaskSnapshot taskSnapshot = await uploadTask;
       final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
@@ -119,11 +118,18 @@ class _CasePageState extends State<CasePage> {
     }
   }
 
+  // void updateImages(List<XFile> newImages) {
+  //   setState(() {
+  //     pickedImages.addAll(newImages);
+  //   });
+  // }
+
   void cargarImagen() async {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return ImageModal(
+        // updateImages: updateImages,
         pickedImages: pickedImages,
         onImagesSelected: (ImageSource source) async {
           if (source == ImageSource.camera) {
